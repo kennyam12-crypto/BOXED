@@ -1,0 +1,5887 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BOXED</title>
+<meta property="og:title" content="BOXED — Daily Word Puzzle">
+<meta property="og:description" content="MORE THAN JUST WORDS. Play the daily BOXED puzzle.">
+<meta property="og:url" content="https://boxed-daily.com/">
+<style>
+  @keyframes pick4Pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+:root{
+  --bg:#11131a;
+  --ink:#f7f7f7;
+  --accent:#ff5252;
+  --trim:#c2ccdf;
+  --tile:#181c24;
+  --tileBorder:#5f7ea8;
+  --tileTextGray:#bfc7d8;
+  --maxW:820px;
+  --tileSize:clamp(52px,7.2vw,72px);
+  --tileFont:clamp(18px,3.6vw,28px);
+  --gutter:10px;
+  --keyW:clamp(30px,5.2vw,44px);
+  --keyH:clamp(34px,5.8vw,46px);
+  --keyFont:clamp(11px,2.4vw,15px);
+  --kbGap:6px;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  min-height:100%;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,
+               Helvetica,Arial,sans-serif;
+}
+
+.shell{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px 12px;
+}
+
+#app{
+  width:100%;
+  max-width:var(--maxW);
+}
+
+/* ---------- BOXED TITLE ---------- */
+
+.header{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-bottom:6px;
+}
+
+.logoRow{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:center;
+}
+
+.logoGlyph{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 10px;
+}
+@media (min-width: 768px) and (pointer: coarse) {
+  .header { transform: translateX(8px); }
+}
+.logoGlyph .ch{
+  font-weight:1000;
+  font-size:clamp(22px,4.4vw,38px);
+  color:var(--tileTextGray);
+  letter-spacing:.1em;
+}
+
+.logoGlyph .ch.red{
+  color:var(--accent);
+}
+
+.logoGlyph::before,
+.logoGlyph::after{
+  content:"";
+  position:absolute;
+  border-color:var(--trim);
+  border-style:solid;
+  border-width:0;
+}
+
+.logoGlyph.corner-tl::before{
+  top:0;left:0;width:56%;
+  border-top-width:1px;
+}
+
+.logoGlyph.corner-tl::after{
+  top:0;left:0;height:72%;
+  border-left-width:1px;
+}
+
+.logoGlyph.corner-tr::before{
+  top:0;right:0;width:56%;
+  border-top-width:1px;
+}
+
+.logoGlyph.corner-tr::after{
+  top:0;right:0;height:72%;
+  border-right-width:1px;
+}
+
+.logoGlyph.corner-bl::before{
+  bottom:0;left:0;width:56%;
+  border-bottom-width:1px;
+}
+
+.logoGlyph.corner-bl::after{
+  bottom:0;left:0;height:72%;
+  border-left-width:1px;
+}
+
+.logoGlyph.corner-br::before{
+  bottom:0;right:0;width:56%;
+  border-bottom-width:1px;
+}
+
+.logoGlyph.corner-br::after{
+  bottom:0;right:0;height:72%;
+  border-right-width:1px;
+}
+
+/* LVL2 has intentionally been removed */
+.tagline{
+  text-align:center;
+  text-transform:uppercase;
+  letter-spacing:.22em;
+  font-size:11px;
+  color:var(--tileTextGray);
+  margin-bottom:18px;
+}
+
+/* ---------- BOARD ---------- */
+
+.board{
+  display:grid;
+  gap:var(--gutter);
+  justify-content:center;
+  margin:0 auto 10px;
+}
+
+.row{
+  display:grid;
+  grid-template-columns:repeat(var(--cols, 5),var(--tileSize));
+  gap:var(--gutter);
+  justify-content:center;
+}
+
+.cell{
+  height:var(--tileSize);
+  width:var(--tileSize);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--tile);
+  border:2px solid var(--tileBorder);
+  border-radius:8px;
+  font-weight:900;
+  font-size:var(--tileFont);
+  color:#f5f5f5;
+  text-transform:uppercase;
+}
+
+.cell.fixed{
+  background:#151925;
+  color:var(--tileTextGray);
+}
+
+.cell.accent{
+  color:var(--accent);
+}
+
+@keyframes anchorIntro{
+  from{
+    filter:blur(6px);
+    opacity:.2;
+    transform:translateY(5px);
+  }
+  to{
+    filter:blur(0);
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.anchor-letter.in{
+  animation:anchorIntro 10s ease-out forwards;
+}
+
+@keyframes pulseRed{
+  0%{
+    box-shadow:0 0 0 0 rgba(255,82,82,0);
+    background:#3b1113;
+  }
+  50%{
+    box-shadow:0 0 0 8px rgba(255,82,82,.35);
+    background:#4a1416;
+  }
+  100%{
+    box-shadow:0 0 0 0 rgba(255,82,82,0);
+    background:#3b1113;
+  }
+}
+
+.cell.invalid{
+  animation:pulseRed .6s ease-in-out 2;
+}
+
+@keyframes nextRowPulse{
+  0%{box-shadow:0 0 0 0 rgba(0,255,120,0);}
+  50%{box-shadow:0 0 0 7px rgba(0,255,120,.4);}
+  100%{box-shadow:0 0 0 0 rgba(0,255,120,0);}
+}
+
+.row.pulse-green .cell{
+  animation:nextRowPulse 1.2s ease-out;
+}
+
+/* ---------- CLUE ---------- */
+
+.clue-text{
+ opacity:0;
+  text-align:center; 
+  
+  text-transform:uppercase;
+  letter-spacing:.22em;
+  font-size:11px;
+  color:var(--tileTextGray);
+  margin:16px 0 22px;
+}
+.clue-row{
+  position:relative;
+}
+  .verse-ref{
+  font-size:7px;
+  letter-spacing:.08em;
+  color:var(--tileTextGray);
+  opacity:.28;
+  text-align:right;
+  width:auto;
+    position:absolute;
+left:calc(50% + 98px);
+top:-4px;
+    
+}
+  @media (max-width: 480px) {
+  .verse-ref {
+    left: auto;
+    right: 36px;
+  }
+}
+  @media (max-width: 480px) {
+  .verse-ref {
+    transform: translateX(-6px);
+  }
+}
+/* ---------- KEYBOARD ---------- */
+
+.kbwrap{
+  margin:0 auto;
+  max-width:680px;
+}
+
+.kb-row{
+  display:flex;
+  gap:var(--kbGap);
+  justify-content:center;
+  margin:var(--kbGap) 0;
+}
+
+.key{
+  min-width:var(--keyW);
+  height:var(--keyH);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:#202635;
+  border:1px solid var(--tileBorder);
+  border-radius:999px;
+  font-weight:800;
+  font-size:var(--keyFont);
+  color:#f5f5f5;
+  cursor:pointer;
+}
+.kb-row:last-child .key:first-child,
+.kb-row:last-child .key:last-child {
+  transform: none;
+}
+  #kb2 > button:first-child,
+#kb2 > button:last-child {
+  position: relative;
+  top: -16px;
+}
+  /* Expanded 5x4 keyboard alignment */
+.kbwrap:has(#kb1 > .key:nth-child(5))
+#kb2 > button:first-child,
+.kbwrap:has(#kb1 > .key:nth-child(5))
+#kb2 > button:last-child {
+  top: 0px;
+}
+.key:active{
+  transform:scale(.97);
+}
+
+.key.disabled{
+  opacity:.28;
+  cursor:not-allowed;
+  filter:grayscale(1);
+  pointer-events:none;
+}
+
+/* ---------- BUTTONS ---------- */
+
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:8px;
+  margin:8px auto 10px;
+}
+
+.btn{
+  border-radius:999px;
+  padding:6px 14px;
+  font-weight:900;
+  letter-spacing:.03em;
+  cursor:pointer;
+  text-transform:uppercase;
+  font-size:10px;
+}
+
+.btn.secondary{
+  background:transparent;
+  border:1px solid var(--tileBorder);
+  color:var(--tileTextGray);
+}
+
+/* ---------- FOOTER ---------- */
+
+.footer{
+  padding-top:10px;
+  margin-top:8px;
+  font-size:11px;
+  color:var(--tileTextGray);
+  text-align:center;
+}
+
+.footer-main{
+  font-weight:700;
+  margin-bottom:4px;
+}
+
+.footer a{
+  color:inherit;
+  text-decoration:none;
+}
+
+.footer a:hover,
+.footer a:focus{
+  text-decoration:underline;
+}
+
+.footer-crosspromo{
+  margin-top:12px;
+  padding-top:9px;
+  border-top:1px solid rgba(194,204,223,.18);
+  font-size:10px;
+}
+
+/*
+  Miniature PERCH branding.
+  Lowercase intentionally preserved.
+*/
+.perch-link{
+  display:inline-flex;
+  gap:1px;
+  margin-left:2px;
+  font-weight:900;
+  letter-spacing:.05em;
+  text-decoration:none !important;
+}
+
+.perch-p{color:#ff5252;}
+.perch-e{color:#bfc7d8;}
+.perch-r{color:#ff5252;}
+.perch-c{color:#bfc7d8;}
+.perch-h{color:#ff5252;}
+
+/* ---------- TOAST ---------- */
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%) translateY(24px);
+  padding:8px 14px;
+  border-radius:999px;
+  background:#05060a;
+  border:1px solid rgba(255,255,255,.25);
+  box-shadow:0 12px 26px rgba(0,0,0,.8);
+  font-size:12px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#fefefe;
+  opacity:0;
+  pointer-events:none;
+  transition:all .22s ease-out;
+}
+
+.toast.on{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* ---------- MODALS ---------- */
+
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.78);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease-out;
+  z-index:20;
+}
+
+.modal-overlay.on{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.modal-card{
+  width:min(420px,calc(100% - 32px));
+  max-height:80vh;
+  overflow:auto;
+  background:
+    radial-gradient(circle at 0 0,#20253b 0,transparent 60%),
+    #05060a;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.17);
+  box-shadow:0 18px 40px rgba(0,0,0,.8);
+  padding:14px 16px 16px;
+  color:#f7f7ff;
+  font-size:13px;
+}
+
+.modal-card h2{
+  margin:0 0 10px;
+  text-transform:uppercase;
+  letter-spacing:.2em;
+  font-size:12px;
+  color:var(--tileTextGray);
+}
+
+.modal-card p{
+  margin:0 0 8px;
+}
+
+.modal-list{
+  padding-left:18px;
+  margin:4px 0 8px;
+}
+
+.modal-list li{
+  margin-bottom:4px;
+}
+
+.modal-close{
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);
+  background:#05060a;
+  color:var(--tileTextGray);
+  float:right;
+  font-size:11px;
+  padding:2px 8px;
+  cursor:pointer;
+}
+  .footer-main a {
+  color: #7F9FC5;
+  text-decoration: none;
+}
+
+.footer-main a:hover,
+.footer-main a:focus {
+  color: #9BB7D8;
+  text-decoration: none;
+}
+  .level2-locked {
+  opacity: 0.25;
+  cursor: default;
+}
+
+  .level2-ready {
+  color: #43d17a !important;
+  border-color: #43d17a !important;
+  animation: level2Pulse 0.8s ease-in-out 4;
+}
+
+@keyframes level2Pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(67, 209, 122, 0);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 12px rgba(67, 209, 122, 0.7);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="shell">
+<div id="app">
+
+  <!-- BOXED TITLE -->
+  <div class="header">
+    <div class="logoRow">
+      <div class="logoGlyph corner-tl">
+        <span class="ch">B</span>
+      </div>
+
+      <div class="logoGlyph corner-tr">
+        <span class="ch">O</span>
+      </div>
+
+      <div class="logoGlyph corner-bl">
+        <span class="ch red">X</span>
+      </div>
+
+      <div class="logoGlyph corner-br">
+        <span class="ch red">E</span>
+      </div>
+
+      <div class="logoGlyph corner-tl">
+        <span class="ch">D</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tagline">
+    MORE THAN JUST WORDS
+  </div>
+
+  <!-- GAME -->
+  <div class="board" id="board"></div>
+
+  <div class="clue-row">
+  <div class="clue-text" id="clueText"></div>
+  <div class="verse-ref">PROVERBS 3:5-6</div>
+</div>
+  
+  <div class="kbwrap">
+    <div class="kb-row" id="kb1"></div>
+    <div class="kb-row" id="kb2"></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn secondary" id="resetBtn" style="display:none;">
+      Reset
+    </button>
+
+    <button class="btn secondary" id="rulesBtn">
+      Rules
+    </button>
+    <button class="btn secondary level2-locked" id="boxUpBtn" disabled style="position:relative;padding-left:18px;padding-right:18px;">
+  ROUND <span style="color:#ff4d5a;">2</span>
+</button>
+    <button class="btn secondary" id="testPick3Btn" type="button" onclick="startPick3()">TEST PICK 3</button>
+   <button class="btn secondary" id="testPick4Btn" type="button" onclick="startPick4()">TEST PICK 4</button> 
+    <img
+  id="boxUpGlove"
+  src="https://01a02ee5-03e7-7775-9601-ff4898d39b48.codepenusercontent.com/.png"
+  alt="Puerto Rico boxing glove"
+  style="display:none;"
+>
+
+    <button class="btn secondary" id="yesterdayBtn">
+      Yesterday's Solution
+    </button>
+  </div>
+
+  <!-- CLEAN FOOTER -->
+  <div class="footer">
+
+    <div class="footer-main">
+      © 2026
+      <a href="mailto:arithmetika2@gmail.com">
+        Kenneth Murray
+      </a>
+      · BOXED
+    </div>
+
+    <div>
+      Daily Puzzle
+    </div>
+
+    <div class="footer-crosspromo">
+      Seeking an additional challenge?
+      Try Kenneth’s
+
+      <a
+        class="perch-link"
+        href="https://PlayPerch.online"
+        target="_blank"
+        rel="noopener"
+        aria-label="Play Kenneth's perch puzzle"
+      >
+        <span class="perch-p">p</span>
+        <span class="perch-e">e</span>
+        <span class="perch-r">r</span>
+        <span class="perch-c">c</span>
+        <span class="perch-h">h</span>
+      </a>.
+    </div>
+
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+</div>
+</div>
+
+<!-- RULES -->
+<div id="rulesModal" class="modal-overlay">
+  <div
+    class="modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="rulesTitle"
+  >
+    <button
+      class="modal-close"
+      data-close-modal="#rulesModal"
+    >
+      Close
+    </button>
+
+    <h2 id="rulesTitle">How to Play</h2>
+
+    <ul class="modal-list">
+      <li>
+        Every row must contain
+        <strong>4 or 5 different letters</strong>.
+      </li>
+
+      <li>
+  Reuse
+  <strong>all but 1 letter</strong>
+  from the previous row and add
+  <strong>1 new letter</strong>.
+</li>
+
+      <li>
+        No reused letter may stay in the
+        <strong>same column</strong>
+        when it moves to the next row.
+      </li>
+
+      <li>
+        Once a letter is
+<strong>discarded</strong>,
+it cannot be used again in that puzzle.
+        </li>
+
+<li>
+        The keyboard contains a custom
+        <strong>8 or 9-letter set</strong>
+        for the day's puzzle.
+      </li>
+
+      <li>
+        Some boxes contain
+        <strong>fixed clue letters</strong>
+        that cannot be changed.
+      </li>
+
+      <li>
+        Solve every row to complete
+        the daily puzzle.
+      </li>
+      <li>
+  <strong>ROUND 2</strong> unlocks an additional
+  challenge after you solve the daily puzzle.
+  You may play <strong>one ROUND 2 puzzle per day</strong>.
+</li>
+    </ul>
+  </div>
+</div>
+
+<!-- YESTERDAY'S SOLUTION -->
+<div id="yesterdayModal" class="modal-overlay">
+  <div
+    class="modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="yesterdayTitle"
+  >
+    <button
+      class="modal-close"
+      data-close-modal="#yesterdayModal"
+    >
+      Close
+    </button>
+
+    <h2 id="yesterdayTitle">
+      Yesterday's Solution
+    </h2>
+
+    <p id="yesterdayText"></p>
+  </div>
+</div>
+
+<script>
+  /* =========================================================
+   PART 2 — 75 BASE SETS / 150 PLAYABLE ORIENTATIONS
+   ========================================================= */
+
+/* BOXED — FINAL STRICT-VALID BASE SETS */
+/* 75 base groups = 150 forward/reverse daily puzzles */
+/* Strict grid validation: 150/150 passed */
+
+/* BOXED — FINAL STRICT-VALID BASE SETS */
+/* 100 base groups = 200 forward/reverse daily puzzles */
+/* Strict grid validation: 200/200 expected */
+
+const BASE_SETS = [
+  ["THIRD","BIRTH","ORBIT","SATELLITE","BRONZE"],
+  ["GROUP","ROUGH","OUGHT","ADVISE","BAND"],
+  ["DRIVE","VIDEO","AVOID","DETOUR","ENCOURAGE"],
+  ["GLOVE","NOVEL","MELON","CANTALOUPE","BASEBALL"],
+  ["UNDER","ROUND","DROWN","WATER","NEGATIVE"],
+  ["HOTEL","WHOLE","ELBOW","JOINT","LOBBY"],
+  ["CARGO","ORGAN","ALONG","TOGETHER","SHIP"],
+  ["DRANK","KNEAD","TAKEN","RESERVED","BEVERAGE"],
+  ["OCEAN","CRANE","RANCH","CATTLE","SALTY"],
+  ["BEGAN","RANGE","GRANT","SCHOLARSHIP","GENESIS"],
+  ["CLEAN","UNCLE","LUNCH","NOON","SOAP"],
+  ["BELOW","LOWER","WROTE","AUTHOR","BASEMENT"],
+  ["AMEND","DEMON","MONEY","WALLET","CONSTITUTION"],
+  ["BRACE","COBRA","ACTOR","HOLLYWOOD","SUPPORT"],
+  ["PANEL","ANGLE","GLAND","THYROID","JURY"],
+  ["AMBER","CREAM","MARCH","PARADE","RESIN"],
+  ["ACUTE","TEACH","YACHT","MARINA","TRIANGLE"],
+  ["AIMED","MEDAL","FLAME","CANDLE","TARGET"],
+  ["SHOUT","HOUSE","USHER","THEATER","MEGAPHONE"],
+  ["BLADE","DELAY","LAYER","CAKE","SKATE"],
+  ["STERN","TRIES","FIRST","GOLD","SHIP"],
+  ["TERMS","STORM","ROAST","OVEN","CONTRACT"],
+  ["BLAST","TALES","STYLE","RUNWAY","EXPLOSION"],
+  ["GRAPE","OPERA","POWER","ELECTRICITY","PURPLE"],
+  ["ARMED","CEDAR","DANCE","BALLROOM","WEAPON"],
+  ["ADORE","BREAD","READY","PREPARED","VALENTINE"],
+  ["SWEAR","WASTE","BEAST","BEAUTY","OATH"],
+  ["BIRCH","CHAIR","HAIRY","SHAGGY","TREE"],
+  ["TOUCH","SCOUT","CULTS","JONESTOWN","SENSE"],
+  ["PILOT","SPOIL","FOILS","UPEND","COCKPIT"],
+  ["FINAL","PLAIN","APING","MIMIC","EXAM"],
+  ["RAYON","ANGRY","GRAND","PIANO","FABRIC"],
+  ["RAPID","PRIDE","DIVER","SCUBA","TRANSIT"],
+  ["SUGAR","USAGE","GAZES","STARES","ADDICTION"],
+  ["MINTS","SAINT","TRAIN","RAILROAD","BREATH"],
+  ["HELMS","SHELF","FLASH","CAMERA","SHIPS"],
+  ["NORTH","FRONT","OFTEN","FREQUENCY","FROZEN"],
+  ["AUTOS","SOUTH","THOSE","THESE","PARKING"],
+  ["WORLD","OLDER","DROVE","HIGHWAY","GLOBE"],
+  ["BORNE","OWNER","GROWN","ADULT","CARRIED"],
+  ["DEBIT","TRIED","RIDGE","MOUNTAIN","BANKING"],
+  ["LARGO","ROYAL","GLORY","FAME","KEYS"],
+  ["KNELT","TOKEN","STONE","ROCK","PRAYER"],
+  ["DINER","TREND","ENTRY","DOORWAY","ROADSIDE"],
+  ["VALID","ALIVE","LIVES","CATS","LICENSE"],
+  ["STAKE","KITES","EXIST","BEING","VAMPIRE"],
+  ["MERCY","CRIME","NICER","KINDNESS","PARDON"],
+  ["OATHS","SHORT","WORTH","VALUE","BIBLE"],
+  ["ANGER","GRAIN","RAINY","UMBRELLA","TEMPER"],
+  ["LACES","PLACE","CHEAP","BARGAIN","SHOES"],
+  ["ZEBRA","BRAKE","MAKER","CREATOR","STRIPES"],
+  ["BRIDE","IDLER","FIELD","MEADOW","BOUQET"],
+  ["OTHER","THORN","MONTH","TWELVE","ANOTHER"],
+  ["ETHIC","DITCH","CHILD","PLAYGROUND","MORALS"],
+  ["SNAKE","RAKES","BREAK","PAUSE","COBRA"],
+  ["REFIT","FIERY","BRIEF","LAWYER","RENOVATION"],
+  ["SLATE","TILES","HEIST","JEWELRY","STONE"],
+  ["SMILE","DIMES","MEDIA","CNN","CHEESE"],
+  ["GLIDE","FILED","DEVIL","PITCHFORK","ICE"],
+  ["WRITE","THREW","HEART","VALENTINE","PENCIL"],
+  ["MATCH","CHEAT","ACHED","TOOTH","TOGETHER"],
+  ["SWEPT","TAPES","PHASE","STAGE","BROOM"],
+  ["FRETS","STORE","TOWER","RADIO","WORRIES"],
+  ["SPEAK","PARKS","GRASP","HANDSHAKE","MICROPHONE"],
+  ["CHEST","ACHES","REACH","SHELF","TREASURE"],
+  ["GRAVE","AVERT","VOTER","BALLOT","SEVERE"],
+  ["GRACE","CLEAR","EARLY","DAWN","PRAYER"],
+  ["DEATH","SATED","ASIDE","STAGE","FUNERAL"],
+  ["DELTA","TAXED","EXACT","BULLSEYE","RIVER"],
+  ["VITAL","TAILS","LEAST","MINIMUM","SIGNS"],
+  ["SPEAR","PEALS","FALSE","PINOCCHIO","HUNTER"],
+  ["FEAST","STEAM","TIMES","MULTIPLY","GRINCH"],
+  ["TOPIC","PITCH","CHIRP","BIRD","AGENDA"],
+  ["LIFTS","FLINT","UNTIL","DEADLINE","ELEVATOR"],
+  ["OXIDE","INDEX","FIEND","VILLAIN","RUST"],
+
+  ["TABLE","ALERT","RELAX","VACATION","DINNER"],
+  ["LEMON","ALONE","NAVEL","BELLY","CITRUS"],
+  ["AMONG","WOMAN","MANGO","FRUIT","BETWEEN"],
+  ["REGAL","LASER","SCARE","FRIGHT","ROYAL"],
+  ["GREAT","AFTER","STARE","GAZE","JORDAN"],
+
+  ["BROAD","RADIO","DIARY","PERSONAL","WIDE"],
+  ["BRINE","ROBIN","MINOR","SLIGHT","SALTWATER"],
+  ["FRESH","SHARE","ASHEN","PALE","NEW"],
+  ["CLAMP","AMPLE","METAL","IRON","GRIP"],
+  ["ATONE","ENACT","CATER","SERVE","APOLOGIZE"],
+
+  ["EXTRA","TRADE","ADEPT","SKILLED","MORE"],
+  ["GHOST","OATHS","SOUTH","DIRECTION","SPIRIT"],
+  ["BEARD","ABIDE","IDEAL","PERFECT","WHISKERS"],
+  ["TRIAL","LATER","PLATE","DISH","COURTROOM"],
+  ["MAPLE","PEARL","ALTER","CHANGE","CANADA"],
+
+  ["FRAME","SMEAR","MARSH","SWAMP","PICTURE"],
+  ["SHIRT","TRASH","HASTE","RUSH","CLOTHING"],
+  ["SMOKE","POEMS","TEMPO","RHYTHM","FIRE"],
+  ["SNAIL","AISLE","ISLET","ISLAND","SHELL"],
+  ["BRUSH","SCRUB","CUBES","DICE","STROKE"],
+
+  ["CARES","SCORE","DECOR","INTERIOR","CONCERNS"],
+  ["HERON","SHORE","ROBES","CLOTHING","BIRD"],
+  ["RISEN","NURSE","VENUS","TENNIS","JESUS"],
+  ["AGONY","WAGON","CONGA","DANCE","UNBEARABLE"],
+  ["NEPAL","PLANT","TALON","DINOSAUR","COUNTRY"],
+  ["EQUIP","QUIET","PIQUE","IRRITATE","SUPPLY"],
+["ARTSY","SMART","DARTS","PUB","BOHEMIAN"],
+["ALDER","DREAM","HEARD","NOISE","TREE"],
+["ASPEN","PLANE","RENAL","KIDNEY","SKIING"],
+["FUMES","MOUSE","SERUM","BLOOD","VAPORS"],
+["ANKLE","LEARN","EARNS","GAINS","JOINT"],
+["SCOUR","COURT","TURBO","BOOST","SCRUB"],
+["BADGE","ABLED","DEALT","HANDLED","OFFICIAL"],
+["VERBS","BRAVE","RAVEN","BIRD","ACTIONS"],
+["CRATE","RATES","STEAL","TAKE","BOXED"],
+["EIGHT","THEIR","IRATE","ANGRY","INFINITY"],
+["BENCH","NICHE","CHIEF","LEADER","SEAT"],
+["AMUSE","MEATS","SWEAT","HUMIDITY","ENTERTAIN"],
+["AGENT","STAGE","HATES","DISLIKES","INSURANCE"],
+["ACRES","SPARE","RECAP","SUMMARY","LAND"],
+["SLANT","LATIN","TIDAL","OCEAN","TILT"],
+["ASKEW","SNEAK","JEANS","BLUE","CROOKED"],
+["STEAK","PASTE","LEAPS","JUMPS","BEEF"],
+["QUEST","SETUP","TYPES","KINDS","SEARCH"],
+["WOMEN","GNOME","VENOM","POISON","FEMALES"],
+["ABORT","LABOR","CORAL","SNORKEL","CANCEL"],
+["INGOT","NITRO","TONER","INK","GOLD"],
+["VIRGO","GROVE","OVERT","OBVIOUS","MAIDEN"],
+["NACHO","CHAIN","PINCH","SQUEEZE","CHIPS"],
+["DEBUG","GUIDE","URGED","ENCOURAGED","FIX"],
+["BLIMP","LIMPS","SPLIT","DIVIDE","ZEPLIN"],
+["ASCOT","CHATS","LATCH","FASTEN","FORMAL"],
+["SPORT","TRAPS","PARTY","CELEBRATION","GAME"],
+["SHOVE","HOVER","OVERT","OBVIOUS","PUSH"],
+["TICKS","STOCK","COAST","SHORE","WATCH"],
+["RASPY","SCRAP","CZARS","RULERS","HOARSE"],
+["VALOR","FLORA","LOAFS","UNMOTIVATED","COURAGE"],
+["PRUDE","UPEND","DUNES","SAND","MODEST"],
+["SWANK","KNOWS","WONKY","ODD","ELEGANT"],
+["OVENS","SNORE","LOSER","DEFEAT","BAKES"],
+["CHORD","ROACH","ORCAS","WHALES","MUSIC"],
+["VIGOR","GROVE","ROVES","WANDERS","ENERGY"],
+["ALIGN","GNARL","LAGER","BEER","STRAIGHTEN"],
+["PERCH","HYPER","RHYME","POETRY","ROOST"],
+["TOXIN","INBOX","BINGO","GAME","POISON"],
+["WAVES","STAVE","VISTA","VIEW","ENERGY"],
+["WORDY","SWORD","DRAWS","ARTIST","VERBOSE"],
+["SPURN","PURSE","ROPES","CORDS","REJECT"],
+["RENTS","SIREN","ARISE","RISE","TUXEDO"],
+["NOTED","TENOR","INERT","STILL","OBSERVED"],
+["CHIME","MEDIC","DICEY","RISKY","BELL"],
+["STALE","LATEX","PLEAT","FOLD","FLAT"],
+["WARNS","SNARE","RESIN","SAP","ALERTS"],
+["LADEN","PLEAD","SPADE","SHOVEL","LOADED"],
+["VAULT","ULTRA","MURAL","WALL","GOLD"],
+  ["PROS","ROSE","OVER","VERY","EXTREMELY","SKILLED"],
+["ZONE","ONES","NEST","STUN","SHOCK","AREA"],
+["LEAN","GALE","AGED","EDGY","DARING","THIN"],
+["PINE","EPIC","ICED","DECK","SHIP","FOREST"],
+["ABLE","FLEA","REAL","EARN","GAIN","CAPABLE"],
+["BATH","HEAT","ACHE","CHEF","COOK","SOAK"],
+["STOP","HOST","THIS","WITH","TOGETHER","TRAFFIC"],
+["PUSH","SHOP","HOPE","OPEN","UNLOCKED","ARMS"],
+["KIDS","DESK","USED","SURE","DEFINITE","PLAYGROUND"],
+["RIDE","DEAR","YARD","ARMY","FORCE","TRIP"],
+  ["OMIT","MITE","STEM","TEAS","DRINKS","EXCLUDE"],
+["ALUM","MAIL","LIME","DELI","EATERY","GRADUATE"],
+["TWIN","NEWT","ANEW","WAVE","GESTURE","DOUBLE"],
+["KILO","IDOL","OLDS","LORD","RULER","WEIGHT"],
+["VEAL","ALES","ISLE","LISP","SPEECH","MEAT"],
+["LIST","SOIL","OWLS","BLOW","HIT","GROCERIES"],
+  ["LACE","SEAL","ALSO","OILS","ESSENTIAL","TRIM"],
+["FIST","STIR","RATS","TRAP","SNARE","HAND"],
+["RACK","ACRE","WEAR","GREW","EXPANDED","SHELF"],
+["AIRS","SCAR","RACE","CREW","TEAM","BREEZES"],
+["SPAR","PART","TRIP","RIPE","MATURE","BOX"],
+["VEIL","LIFE","FLEW","WOLF","ALPHA","COVER"],
+["ECHO","SHOE","TOES","VEST","GARMENT","REPEAT"],
+["WIDE","DREW","READ","EARS","HEARING","BROAD"],
+["GRIP","PIER","ROPE","ZERO","COLD","PLIER"],
+["AIDE","HEAD","EACH","CHEW","BITE","ASSIST"],
+  ["AGES","GAME","MEAT","TAKE","GRAB","YEARS"],
+  ["ANTE","DEAN","IDEA","PAID","COMPENSATED","STAKE"],
+["DEBT","ABED","BARE","CRAB","PINCHERS","OWED"],
+["MENU","AMEN","SAME","EXAM","DENTIST","OPTIONS"],
+["ACTS","SEAT","TAPE","PLEA","APPEAL","DEEDS"],
+["HUNT","THAN","MATH","ATOM","PARTICLE","SEARCH"],
+["FONT","INFO","LION","NAIL","SPIKE","TYPE"],
+["LEFT","FLED","IDLE","EVIL","WICKED","REMAINING"],
+["ONCE","ICON","COIL","SILO","GRAIN","FORMERLY"],
+["EDIT","TEND","NOTE","OVEN","APPLIANCE","REVISE"],
+  ["THEN","SENT","ENDS","NOSE","SCENT","AFTER"],
+["SORE","REST","TSAR","ARMS","WEAPONS","ACHING"],
+["NEAR","RAIN","ANTI","HINT","CLUE","CLOSE"],
+["INTO","RIOT","TOUR","OURS","BELONGING","INSIDE"],
+["TUBE","BEST","EATS","STAY","STILL","PIPE"],
+["SHOW","OWNS","DOWN","UNDO","REVERSE","DISPLAY"],
+["NAME","OMEN","MONK","KNOW","UNDERSTAND","IDENTIFY"],
+["RULE","EARL","YEAR","PREY","VICTIM","GOVERN"],
+["FUEL","LEAF","SALE","ALMS","CHARITY","ENERGY"],
+  ["ACID","IDEA","DEAL","LAKE","WATER","SOUR"],
+["ACRE","EACH","HEAT","THEN","AFTER","LAND"],
+["ARCH","CARD","DEAR","RODE","TRAVELED","CURVE"],
+["ARTS","REST","SURE","USED","SECONDHAND","DANCE"],
+["ATOM","MATH","THAN","HINT","CLUE","PARTICLE"],
+["BALD","DEAL","FLEA","LIFE","BREATHE","EAGLE"],
+["DROP","ROPE","HERO","OVER","FINISHED","FALL"],
+["ENDS","NEST","THEN","HATE","DISLIKE","TIPS"],
+["KNEW","NEWS","WISE","SWIM","PADDLE","AWARE"],
+["OPEN","NOTE","TEND","ENDS","FINISHES","UNLOCKED"],
+];
+  
+ // ROUND 2 — 5x4 EXPANDED INVENTORY
+ // Four rows of five letters each.
+ // Kept separate from the existing 4x4 puzzles.
+
+ 
+const ROUND2_5X4_BANK = [
+  ["BEACH", "CHEAP", "ACHES", "HASTE", "CARELESS"],
+  ["BRINE", "SIREN", "RENTS", "ENTRY", "ARRIVAL"],
+  ["RHYME", "HYPER", "PERCH", "CREPT", "SNUCK"],
+  ["AMPLE", "PEARL", "SPEAR", "RASPY", "HOARSE"],
+  ["GREAT", "EARTH", "AFTER", "FEARS", "ANXIETIES"],
+  ["WASTE", "STEAM", "YEAST", "TYPES", "KINDS"],
+
+  ["OWING", "BINGO", "INBOX", "TOXIN", "POISON"],
+  ["CRIME", "MEDIC", "AIMED", "IDEAS", "THOUGHTS"],
+  ["ZEBRA", "GRAZE", "RAGES", "SMEAR", "SMUDGE"],
+  ["ALIGN", "GNARL", "LAGER", "RELAY", "BATON"],
+  ["MEDIA", "DREAM", "CARED", "ADORE", "CHERISH"],
+  ["WOMEN", "VENOM", "OVENS", "SHOVE", "PUSH"],
+
+  ["TOWNS", "ONSET", "STERN", "NURSE", "CAREGIVER"],
+  ["ARMED", "REALM", "LARGE", "CLEAR", "TRANSPARENT"],
+  ["ALIVE", "IDEAL", "DEALT", "HATED", "DESPISED"],
+  ["TAXES", "STAGE", "AGENT", "BEGAN", "STARTED"],
+  ["RANGE", "ANGEL", "CLEAN", "LEANS", "UNBALANCED"],
+  ["ASKEW", "SWANK", "KNOWS", "WONKY", "WEIRD"],
+  ["STORY", "ROAST", "ORCAS", "CAROL", "CHRISTMAS"],
+  ["SCOPA", "ASCOT", "CHATS", "LATCH", "FASTEN"],
+  ["ACTOR", "COAST", "STOCK", "TICKS", "WATCH"],
+  ["PRICE", "RELIC", "ULCER", "CURLS", "BICEPS"],
+  ["SPIRE", "RISEN", "NERDS", "TREND", "FASHION"],
+  ["CORAL", "FLORA", "VALOR", "BRAVO", "APPLAUSE"],
+  ["RETOX", "TROVE", "OTHER", "FORTH", "BACK"],
+  ["DELTA", "CLEAT", "TRACE", "RATES", "INTEREST"],
+  ["ALIKE", "LAKES", "STEAL", "FEAST", "BANQUET"],
+  ["HEART", "SHEAR", "RAISE", "ACRES", "LAND"],
+  
+["BORED", "CREDO", "SCORE", "RECON", "INTELLIGENCE"],
+["WRENS", "SNORE", "TENOR", "NOTED", "RECOGNIZED"],
+["INSET", "SERIN", "RINGS", "GRIND", "TOIL"],
+["EARLY", "LEARN", "ALONE", "NOVEL", "FICTION"]
+];
+
+
+
+// Convert a 5x4 word chain into a puzzle object.
+function makeExpandedPuzzle(words) {
+  return {
+    start: words[0],
+    target1: words[1],
+    target2: words[2],
+    target3: words[3],
+    rowCount: 4,
+    expandedMode: true,
+  clue: words[4],
+
+keyboard: (() => {
+  const letters = [...new Set(words.slice(0, 4).join(""))];
+  const unused = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    .split("")
+    .filter(letter => !letters.includes(letter) && letter !== "Q");
+
+  const seed = words.slice(0, 4).join("");
+  const index = [...seed].reduce(
+    (sum, letter) => sum * 31 + letter.charCodeAt(0),
+    0
+  ) >>> 0;
+
+  return [...letters, unused[index % unused.length]];
+})()
+
+  };
+}
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+function seededShuffle(list, seed){
+  const a = list.slice();
+  let x = (seed * 9301 + 49297) % 233280;
+
+  for(let i = a.length - 1; i > 0; i--){
+    x = (x * 9301 + 49297) % 233280;
+    const j = Math.floor((x / 233280) * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+
+  return a;
+}
+
+function makeKeyboard(start, middle, final, seed, extraWord){
+  const used = [...new Set(
+    (start + middle + final + (extraWord || "")).split("")
+  )];
+
+  const extras = ALPHABET.filter(
+  ch => !used.includes(ch) &&
+  (ch !== "Q" || used.includes("U"))
+);
+
+  const offset = seed % extras.length;
+
+  const rotated = extras
+    .slice(offset)
+    .concat(extras.slice(0, offset));
+
+  while(used.length < 8){
+    used.push(rotated.shift());
+  }
+
+  return seededShuffle(
+    used.slice(0, 8),
+    seed
+  );
+}
+
+/* ROUND 2 — 5x4 EXPANDED KEYBOARD */
+
+function makeExpandedKeyboard(words, seed) {
+  const used = [...new Set(words.join("").split(""))];
+
+  const extras = ALPHABET.filter(
+    letter => !used.includes(letter)
+  );
+
+  const decoy = extras[seed % extras.length];
+
+  return seededShuffle(
+    [...used, decoy],
+    seed
+  );
+}
+
+/* ROUND 2 — 5x4 EXPANDED PUZZLE OBJECTS */
+
+const ROUND2_5X4_PUZZLES = ROUND2_5X4_BANK.map(
+  (words, index) => ({
+    id: `ROUND2-5X4-${index + 1}`,
+    start: words[0],
+    target1: words[1],
+    target2: words[2],
+    target3: words[3],
+    rowCount: 4,
+    expandedMode: true,
+    clue: words[3],
+    keyboard: makeExpandedKeyboard(words, index + 1),
+    solutionText: words.join(" → ")
+  })
+);
+
+function makeFixedPair(middle, final, seed){
+
+  const patternA = [2, 3];
+  const patternB = [3, 2];
+
+  const lettersA = [
+    middle[patternA[0]],
+    final[patternA[1]]
+  ];
+
+  const lettersB = [
+    middle[patternB[0]],
+    final[patternB[1]]
+  ];
+
+  const scoreA =
+    new Set(lettersA).size;
+
+  const scoreB =
+    new Set(lettersB).size;
+
+  let pattern;
+
+  if(scoreA > scoreB){
+    pattern = patternA;
+  }
+  else if(scoreB > scoreA){
+    pattern = patternB;
+  }
+  else{
+    pattern =
+      seed % 2 === 0
+        ? patternA
+        : patternB;
+  }
+
+  return {
+    fixed1: {
+      col: pattern[0],
+      letter: middle[pattern[0]]
+    },
+
+    fixed2: {
+      col: pattern[1],
+      letter: final[pattern[1]]
+    }
+  };
+}
+function makeFixedTriple(first, second, third){
+
+ const patterns = [
+  [1, 2, 3],
+  [1, 3, 2],
+  [2, 1, 3],
+  [2, 3, 1],
+  [3, 1, 2],
+  [3, 2, 1]
+];
+
+const cols =
+  patterns.find(p =>
+    new Set([
+      first[p[0]],
+      second[p[1]],
+      third[p[2]]
+    ]).size === 3
+  ) || patterns[0];
+
+  return {
+    fixed1: {
+      col: cols[0],
+      letter: first[cols[0]]
+    },
+
+    fixed2: {
+      col: cols[1],
+      letter: second[cols[1]]
+    },
+
+    fixed3: {
+      col: cols[2],
+      letter: third[cols[2]]
+    }
+  };
+}
+  
+/* ROUND 2 — 5x4 EXPANDED RED CLUES */
+
+function makeFixedQuad(first, second, third) {
+  const rows = [first, second, third];
+
+  const patterns = [
+    [1, 2, 3, 4],
+    [1, 3, 2, 4],
+    [2, 1, 3, 4],
+    [2, 3, 1, 4],
+    [3, 1, 4, 2],
+    [4, 2, 1, 3]
+  ];
+
+  const cols = patterns.find(p => {
+    const letters = [
+      first[p[0]],
+      second[p[1]],
+      third[p[2]],
+      third[p[3]]
+    ];
+
+    return new Set(letters).size === 4;
+  }) || patterns[0];
+
+  return {
+    fixed1: {
+      col: cols[0],
+      letter: first[cols[0]]
+    },
+    fixed2: {
+      col: cols[1],
+      letter: second[cols[1]]
+    },
+    fixed3: {
+      col: cols[2],
+      letter: third[cols[2]]
+    },
+    fixed4: {
+      col: cols[3],
+      letter: third[cols[3]]
+    }
+  };
+}
+
+function makePuzzle(
+  num,
+  start,
+  middle,
+  final,
+  clue
+){
+  const usePatternA = num % 2 === 0;
+
+const fixed1Col = usePatternA ? 2 : 3;
+const fixed2Col = usePatternA ? 3 : 2;
+
+const fixed1 = {
+  col: fixed1Col,
+  letter: middle[fixed1Col]
+};
+
+const fixed2 = {
+  col: fixed2Col,
+  letter: final[fixed2Col]
+};
+  
+  return {
+    id: `BOXED-${num}`,
+
+    clue,
+
+    start,
+
+    target1: middle,
+    target2: final,
+
+    fixed1,
+fixed2,
+
+    keyboard: makeKeyboard(
+      start,
+      middle,
+      final,
+      num
+    ),
+
+    solutionText:
+      `${start} → ${middle} → ${final}`
+  };
+}
+function makePuzzle4(
+  num,
+  start,
+  second,
+  third,
+  final,
+  clue
+){
+  const fixedTriple = makeFixedTriple(
+    second,
+    third,
+    final
+  );
+
+  return {
+    num,
+    start,
+
+    target1: second,
+    target2: third,
+    target3: final,
+
+    fixed1: fixedTriple.fixed1,
+    fixed2: fixedTriple.fixed2,
+    fixed3: fixedTriple.fixed3,
+
+    keyboard: makeKeyboard(
+      start,
+      second,
+      third,
+      num,
+      final
+    ),
+
+    clue,
+
+    solutionText:
+      `${start} → ${second} → ${third} → ${final}`
+  };
+}
+
+  /*
+Each base set creates two daily puzzles:
+
+Forward:
+START → MIDDLE → FINAL
+
+Reverse:
+FINAL → MIDDLE → START
+*/
+
+const PUZZLES = BASE_SETS.flatMap(
+  (set, index) => {
+    if (set.length === 6) {
+  const [first, second, third, final, finalClue, firstClue] = set;
+      const fixedTriple = makeFixedTriple(second, third, final, index);
+return [
+  makePuzzle4(
+    index * 2 + 1,
+    first,
+    second,
+    third,
+    final,
+    finalClue
+  ),
+
+  makePuzzle4(
+    index * 2 + 2,
+    final,
+    third,
+    second,
+    first,
+    firstClue
+  )
+];}
+
+    const [
+      first,
+      middle,
+      last,
+      lastClue,
+      firstClue
+    ] = set;
+
+    const forwardNumber =
+      index * 2 + 1;
+
+    const reverseNumber =
+      index * 2 + 2;
+
+    return [
+
+      makePuzzle(
+        forwardNumber,
+        first,
+        middle,
+        last,
+        lastClue
+      ),
+
+      makePuzzle(
+        reverseNumber,
+        last,
+        middle,
+        first,
+        firstClue
+      )
+
+    ];
+  }
+);
+
+console.log(
+  `BOXED loaded ${PUZZLES.length} playable puzzles.`
+);
+  /* =========================================================
+   PART 3 — DAILY ROTATION / BOARD / KEYBOARD
+   ========================================================= */
+
+
+/* ---------- DAILY DATE / ROTATION ---------- */
+
+/*
+BOXED uses the New York calendar date so every player
+receives the same daily puzzle regardless of device timezone.
+*/
+
+function getNYDateParts(date = new Date()){
+  const parts = new Intl.DateTimeFormat(
+    "en-US",
+    {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }
+  ).formatToParts(date);
+
+  const values = {};
+
+  parts.forEach(part => {
+    values[part.type] = part.value;
+  });
+
+  return {
+    year: Number(values.year),
+    month: Number(values.month),
+    day: Number(values.day)
+  };
+}
+
+
+function dateNumber(parts){
+  return Math.floor(
+    Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day
+    ) / 86400000
+  );
+}
+
+
+/*
+Rotation begins from this reference date.
+
+The multiplier 47 is relatively prime to 300.
+That means every one of the 300 puzzles appears
+once before the sequence repeats.
+*/
+
+const ROTATION_BASE =
+  Math.floor(
+    Date.UTC(2026, 7, 23) / 86400000
+  );
+
+
+function getDailyNumber(offset = 0){
+  const today =
+    dateNumber(
+      getNYDateParts()
+    );
+
+  return today -
+         ROTATION_BASE +
+         offset;
+}
+
+
+function getPuzzleIndex(offset = 0){
+  const dayNumber =
+    getDailyNumber(offset);
+
+  const total =
+    PUZZLES.length;
+
+  return (
+    (
+      dayNumber * 47 + 23
+    ) % total + total
+  ) % total;
+}
+const FIVE_LETTER_PUZZLES =
+  PUZZLES.filter(
+    puzzle => puzzle.start.length === 5
+  );
+const FOUR_LETTER_PUZZLES =
+  PUZZLES.filter(
+    puzzle => puzzle.start.length === 4
+  );
+
+function getTodayPuzzle(){
+  const dayNumber = getDailyNumber(0);
+  const total = FIVE_LETTER_PUZZLES.length;
+
+  const index =
+    ((dayNumber * 47 + 23) % total + total) % total;
+
+  return FIVE_LETTER_PUZZLES[index];
+}
+
+
+function getYesterdayPuzzle(){
+  const dayNumber = getDailyNumber(-1);
+  const total = FIVE_LETTER_PUZZLES.length;
+
+  const index =
+    ((dayNumber * 47 + 23) % total + total) % total;
+
+  return FIVE_LETTER_PUZZLES[index];
+}
+
+
+
+/* ---------- GAME STATE ---------- */
+
+let currentPuzzle = null;
+let isBoxUpMode = false;
+/*
+Rows:
+
+0 = supplied starting word
+1 = player's first transformation
+2 = player's final transformation
+*/
+
+let currentRow = 1;
+
+let guesses = [
+  ["","","","",""],
+  ["","","","",""],
+  ["","","","",""]
+];
+
+let keyElsByLetter = {};
+
+let gameComplete = false;
+
+
+
+/* ---------- START A DAILY PUZZLE ---------- */
+
+function loadPuzzle(puzzle){
+
+ currentPuzzle = puzzle;
+
+if (currentPuzzle.expandedMode === true) {
+  const fixedQuad = makeFixedQuad(
+    currentPuzzle.target1,
+    currentPuzzle.target2,
+    currentPuzzle.target3
+  );
+
+  currentPuzzle.fixed1 = fixedQuad.fixed1;
+  currentPuzzle.fixed2 = fixedQuad.fixed2;
+  currentPuzzle.fixed3 = fixedQuad.fixed3;
+  currentPuzzle.fixed4 = fixedQuad.fixed4;
+
+} else
+
+if (currentPuzzle.start.length === 4) {
+
+  const fixedTriple = makeFixedTriple(
+    currentPuzzle.target1,
+    currentPuzzle.target2,
+    currentPuzzle.target3
+  );
+
+  currentPuzzle.fixed1 = fixedTriple.fixed1;
+  currentPuzzle.fixed2 = fixedTriple.fixed2;
+  currentPuzzle.fixed3 = fixedTriple.fixed3;
+
+} else {
+
+  const betterFixedPair = makeFixedPair(
+    currentPuzzle.target1,
+    currentPuzzle.target2,
+    0
+  );
+
+  currentPuzzle.fixed1 = betterFixedPair.fixed1;
+  currentPuzzle.fixed2 = betterFixedPair.fixed2;
+}
+  currentRow = 1;
+
+  gameComplete = false;
+
+  guesses = Array.from(
+  { length: puzzle.rowCount || (puzzle.start.length === 4 ? 4 : 3) },
+  (_, row) =>
+    row === 0
+      ? puzzle.start.split("")
+      : Array(puzzle.start.length).fill("")
+);
+console.log("AFTER GUESSES SETUP", puzzle.start, puzzle.start.length, guesses.length, guesses);
+
+  /*
+  Insert the two fixed clue letters.
+  */
+
+  guesses[1][
+    puzzle.fixed1.col
+  ] = puzzle.fixed1.letter;
+
+  guesses[2][
+    puzzle.fixed2.col
+  ] = puzzle.fixed2.letter;
+if (puzzle.start.length === 4) {
+  guesses[3][
+    puzzle.fixed3.col
+  ] = puzzle.fixed3.letter;
+} 
+  
+if (puzzle.expandedMode === true) {
+  guesses[3][puzzle.fixed3.col] = puzzle.fixed3.letter;
+  guesses[3][puzzle.fixed4.col] = puzzle.fixed4.letter;
+}
+
+const completionPanel =
+  document.getElementById("boxedCompletionPanel");
+
+if (completionPanel) {
+  completionPanel.style.display = "none";
+}
+
+renderBoard();
+renderKeyboard();
+renderClue();
+
+}
+
+
+
+/* ---------- CLUE ---------- */
+
+function renderClue(){
+
+  const clueEl =
+    document.getElementById(
+      "clueText"
+    );
+
+  clueEl.textContent = currentPuzzle.clue;
+clueEl.style.transition = "none";
+clueEl.style.opacity = "0";
+}
+
+
+
+/* ---------- BOARD ---------- */
+
+function renderBoard(){
+
+  const board =
+    document.getElementById(
+      "board"
+    );
+
+  board.innerHTML = "";
+const rowCount = currentPuzzle.rowCount ||
+  (currentPuzzle.start.length === 4 ? 4 : 3);
+const colCount = currentPuzzle.start.length;
+board.style.setProperty("--cols", colCount);
+  board.style.transform = colCount === 4 ? "translateX(-6px)" : "";
+  const verseRef = document.querySelector(".verse-ref");
+
+if (verseRef) {
+  const isPhone = window.innerWidth <= 480;
+
+  if (colCount === 4) {
+    verseRef.style.left = "auto";
+    verseRef.style.right = isPhone
+      ? "calc(50% - 120px)"
+      : "calc(50% - 126px)";
+  } else {
+    verseRef.style.left = isPhone ? "calc(50% + 82px)" : "";
+    verseRef.style.right = "auto";
+  }
+}
+  for(
+    let rowIndex = 0;
+    rowIndex < rowCount;
+    rowIndex++
+  ){
+
+    const rowEl =
+      document.createElement(
+        "div"
+      );
+
+    rowEl.className = "row";
+
+    rowEl.dataset.row =
+      rowIndex;
+
+
+    for(
+      let col = 0;
+      col < colCount;
+      col++
+    ){
+
+      const cell =
+        document.createElement(
+          "div"
+        );
+
+      cell.className = "cell";
+
+
+      /*
+      Starting word is permanently supplied.
+      */
+
+      if(rowIndex === 0){
+
+        cell.textContent =
+          currentPuzzle.start[col];
+
+        cell.classList.add(
+          "fixed"
+        );
+
+      }
+
+
+      /*
+      Row 2 fixed clue letter.
+      */
+
+      else if(
+        rowIndex === 1 &&
+        col ===
+          currentPuzzle.fixed1.col
+      ){
+
+        cell.textContent =
+          currentPuzzle.fixed1.letter;
+
+        cell.classList.add(
+          "fixed",
+          "anchor-letter"
+        );
+
+      }
+
+
+      /*
+      Row 3 fixed clue letter.
+      */
+
+      else if(
+        rowIndex === 2 &&
+        col ===
+          currentPuzzle.fixed2.col
+      ){
+
+        cell.textContent =
+          currentPuzzle.fixed2.letter;
+
+        cell.classList.add(
+          "fixed",
+          "anchor-letter"
+        );
+
+     } else if (
+  currentPuzzle.expandedMode !== true &&
+  currentPuzzle.start.length === 4 &&
+  rowIndex === 3 &&
+  col === currentPuzzle.fixed3.col
+) { 
+
+  cell.textContent =
+    currentPuzzle.fixed3.letter;
+
+  cell.classList.add(
+    "fixed",
+    "anchor-letter"
+  );
+
+}
+
+
+else if (
+  currentPuzzle.expandedMode === true &&
+  rowIndex === 3 &&
+  (
+    col === currentPuzzle.fixed3.col ||
+    col === currentPuzzle.fixed4.col
+  )
+) {
+  const fixedLetter =
+    col === currentPuzzle.fixed3.col
+      ? currentPuzzle.fixed3.letter
+      : currentPuzzle.fixed4.letter;
+
+  cell.textContent = fixedLetter;
+  cell.classList.add("fixed", "anchor-letter");
+}
+
+      else {
+console.log("BOARD CHECK", rowIndex, col, guesses.length, guesses);
+        cell.textContent =
+          guesses[rowIndex][col];
+
+      }
+
+
+      cell.dataset.row =
+        rowIndex;
+
+      cell.dataset.col =
+        col;
+
+
+      /*
+      Player may tap an entered letter
+      to remove it.
+      The actual behavior is supplied
+      in Part 4.
+      */
+
+      if(rowIndex > 0){
+
+        cell.addEventListener(
+          "click",
+          () => {
+            handleCellTap(
+              rowIndex,
+              col
+            );
+          }
+        );
+
+      }
+
+
+      rowEl.appendChild(
+        cell
+      );
+
+    }
+
+
+    board.appendChild(
+      rowEl
+    );
+
+  }
+
+}
+
+
+
+/* ---------- KEYBOARD ---------- */
+
+function renderKeyboard(){
+
+  const kb1 =
+    document.getElementById(
+      "kb1"
+    );
+
+  const kb2 =
+    document.getElementById(
+      "kb2"
+    );
+
+  kb1.innerHTML = "";
+  kb2.innerHTML = "";
+
+  keyElsByLetter = {};
+
+
+  /*
+  Eight letters are divided into
+  two centered rows of four.
+  */
+
+  currentPuzzle.keyboard
+    .forEach(
+      (letter, index) => {
+
+        const key =
+          document.createElement(
+            "button"
+          );
+
+        key.type = "button";
+
+        key.className =
+          "key";
+
+        key.textContent =
+          letter;
+
+        key.dataset.letter =
+          letter;
+
+
+        key.addEventListener(
+          "click",
+          () => {
+            handleKey(letter);
+          }
+        );
+
+
+        keyElsByLetter[
+          letter
+        ] = key;
+
+
+        if(index < (currentPuzzle.expandedMode === true ? 5 : 4)){
+
+          kb1.appendChild(
+            key
+          );
+
+        }
+
+        else {
+
+          kb2.appendChild(
+            key
+          );
+
+        }
+
+      }
+    );
+
+}
+
+
+
+/* ---------- KEYBOARD ENABLE / DISABLE ---------- */
+
+function enableAllKeys(){
+
+  Object.values(
+    keyElsByLetter
+  ).forEach(key => {
+
+    key.classList.remove(
+      "disabled"
+    );
+
+  });
+
+}
+
+
+function disableKey(letter){
+
+  const key =
+    keyElsByLetter[
+      letter
+    ];
+
+  if(key){
+
+    key.classList.add(
+      "disabled"
+    );
+
+  }
+
+}
+
+
+
+/* ---------- IDENTIFY DISCARDED LETTER ---------- */
+
+function findDiscardedLetter(
+  previousWord,
+  nextWord
+){
+
+  return previousWord
+    .split("")
+    .find(
+      letter =>
+        !nextWord.includes(letter)
+    ) || null;
+
+}
+
+
+
+/* ---------- VISUAL ROW HELPERS ---------- */
+
+function pulseRowGreen(
+  rowIndex
+){
+
+  const row =
+    document.querySelector(
+      `.row[data-row="${rowIndex}"]`
+    );
+
+  if(!row) return;
+
+  row.classList.remove(
+    "pulse-green"
+  );
+
+  void row.offsetWidth;
+
+  row.classList.add(
+    "pulse-green"
+  );
+
+
+  setTimeout(
+    () => {
+
+      row.classList.remove(
+        "pulse-green"
+      );
+
+    },
+    1250
+  );
+
+}
+
+
+function pulseRowInvalid(
+  rowIndex
+){
+
+  const cells =
+    document.querySelectorAll(
+      `.cell[data-row="${rowIndex}"]`
+    );
+
+
+  cells.forEach(
+    cell => {
+
+      cell.classList.remove(
+        "invalid"
+      );
+
+      void cell.offsetWidth;
+
+      cell.classList.add(
+        "invalid"
+      );
+
+    }
+  );
+
+
+  setTimeout(
+    () => {
+
+      cells.forEach(
+        cell => {
+
+          cell.classList.remove(
+            "invalid"
+          );
+
+        }
+      );
+
+    },
+    1300
+  );
+
+}
+
+
+
+/* ---------- TOAST ---------- */
+
+let toastTimer = null;
+
+
+function showToast(message, duration = 1700){
+
+  const toast =
+    document.getElementById(
+      "toast"
+    );
+
+  toast.textContent =
+    message;
+
+  toast.classList.add(
+    "on"
+  );
+
+
+  clearTimeout(
+    toastTimer
+  );
+
+
+  toastTimer =
+    setTimeout(
+      () => {
+
+        toast.classList.remove(
+          "on"
+        );
+
+      },
+      duration
+    );
+
+}
+  /* =========================================================
+   PART 4 — GAMEPLAY ENGINE / VALIDATION / CONTROLS
+   ========================================================= */
+
+
+/* ---------- FIXED-CELL CHECK ---------- */
+
+function isFixedCell(rowIndex, col){
+
+  if(rowIndex === 0){
+    return true;
+  }
+
+  if(
+    rowIndex === 1 &&
+    col === currentPuzzle.fixed1.col
+  ){
+    return true;
+  }
+
+  if(
+    rowIndex === 2 &&
+    col === currentPuzzle.fixed2.col
+  ){
+    return true;
+  }
+ if(
+  rowIndex === 3 &&
+  currentPuzzle.fixed3 &&
+  col === currentPuzzle.fixed3.col
+){
+  return true;
+}
+  if (
+  currentPuzzle.expandedMode === true &&
+  rowIndex === 3 &&
+  col === currentPuzzle.fixed4.col
+) {
+  return true;
+}
+  return false;
+}
+
+
+/* ---------- CURRENT ROW WORD ---------- */
+
+function getRowWord(rowIndex){
+
+  return guesses[rowIndex]
+    .join("")
+    .toUpperCase();
+}
+
+
+/* ---------- NEXT OPEN CELL ---------- */
+
+function findNextOpenCell(rowIndex){
+
+ for(let col = 0; col < currentPuzzle.start.length; col++){ 
+
+    if(
+      !isFixedCell(rowIndex, col) &&
+      !guesses[rowIndex][col]
+    ){
+      return col;
+    }
+
+  }
+
+  return -1;
+}
+
+
+/* ---------- KEY PRESS ---------- */
+
+function handleKey(letter){
+
+  if(gameComplete){
+    return;
+  }
+
+  if (
+  currentRow < 1 ||
+  currentRow >= (currentPuzzle.rowCount ||
+    (currentPuzzle.start.length === 4 ? 4 : 3))
+) {
+    return;
+  }
+
+  const col =
+    findNextOpenCell(currentRow);
+
+  if(col === -1){
+    return;
+  }
+
+
+  /*
+  Prevent duplicate letters inside
+  the same five-letter row.
+  */
+
+  if(
+    guesses[currentRow]
+      .includes(letter)
+  ){
+    showToast(
+      "Use each letter only once"
+    );
+
+    return;
+  }
+
+
+  guesses[currentRow][col] =
+    letter;
+
+  renderBoard();
+
+
+  /*
+  Automatically validate when
+  all five cells are filled.
+  */
+
+  if(
+    guesses[currentRow]
+      .every(Boolean)
+  ){
+    submitCurrentRow();
+  }
+
+}
+
+
+/* ---------- CELL TAP / ERASE ---------- */
+
+function handleCellTap(
+  rowIndex,
+  col
+){
+
+  if(gameComplete){
+    return;
+  }
+
+
+  /*
+  Only the active row
+  may be edited.
+  */
+
+  if(rowIndex !== currentRow){
+    return;
+  }
+
+
+  /*
+  Fixed clue letters
+  cannot be removed.
+  */
+
+  if(
+    isFixedCell(
+      rowIndex,
+      col
+    )
+  ){
+    return;
+  }
+
+
+  guesses[rowIndex][col] = "";
+
+  renderBoard();
+}
+
+
+/* ---------- TRANSFORMATION RULE CHECK ---------- */
+
+function isValidTransformation(
+  previousWord,
+  nextWord
+){
+
+  if(
+  previousWord.length !== nextWord.length ||
+  ![4, 5].includes(previousWord.length)
+){
+  return false;
+}
+
+  /*
+  Every word must be an isogram.
+  */
+
+  if(
+    new Set(nextWord).size !== nextWord.length
+  ){
+    return false;
+  }
+
+
+  const previousLetters =
+    new Set(previousWord);
+
+  const nextLetters =
+    new Set(nextWord);
+
+
+  const shared =
+    [...previousLetters]
+      .filter(
+        letter =>
+          nextLetters.has(letter)
+      );
+
+
+  /*
+  Exactly four letters
+  must carry forward.
+  */
+
+  if(shared.length !== previousWord.length - 1){
+    return false;
+  }
+
+
+  /*
+  Exactly one new letter.
+  */
+
+  const newLetters =
+    [...nextLetters]
+      .filter(
+        letter =>
+          !previousLetters.has(letter)
+      );
+
+
+  if(newLetters.length !== 1){
+    return false;
+  }
+
+
+  /*
+  Every reused letter must
+  move to a different column.
+  */
+
+  for(
+    const letter of shared
+  ){
+
+    const previousColumn =
+      previousWord.indexOf(letter);
+
+    const nextColumn =
+      nextWord.indexOf(letter);
+
+    if(
+      previousColumn ===
+      nextColumn
+    ){
+      return false;
+    }
+
+  }
+
+
+  return true;
+}
+
+
+/* ---------- SUBMIT ACTIVE ROW ---------- */
+
+function submitCurrentRow(){
+
+  if(gameComplete){
+    return;
+  }
+
+
+  const previousWord =
+  currentRow === 1
+    ? currentPuzzle.start
+    : currentRow === 2
+      ? currentPuzzle.target1
+      : currentRow === 3
+        ? currentPuzzle.target2
+        : currentPuzzle.target3;
+
+
+  const enteredWord =
+    getRowWord(currentRow);
+
+
+  const targetWord =
+  currentRow === 1
+    ? currentPuzzle.target1
+    : currentRow === 2
+      ? currentPuzzle.target2
+      : currentPuzzle.target3;
+
+
+  /*
+  First verify the general
+  BOXED transformation rules.
+  */
+
+  if(
+    !isValidTransformation(
+      previousWord,
+      enteredWord
+    )
+  ){
+
+    pulseRowInvalid(
+      currentRow
+    );
+
+    showToast(
+      "That move does not fit"
+    );
+
+    return;
+  }
+
+
+  /*
+  Then verify that this is
+  the intended daily solution.
+  */
+
+  if(
+    enteredWord !== targetWord
+  ){
+
+    pulseRowInvalid(
+      currentRow
+    );
+
+    showToast(
+      "Valid move — keep looking"
+    );
+
+    return;
+  }
+
+
+  /*
+  ROW 2 CORRECT
+  */
+
+  if(currentRow === 1){
+
+    pulseRowGreen(1);
+const clueEl = document.getElementById("clueText");
+
+if (clueEl) {
+  clueEl.style.opacity = "0";
+  clueEl.style.transition = "none";
+
+  setTimeout(() => {
+    clueEl.style.transition = "opacity 10.2s ease-in-out";
+    clueEl.style.opacity = "1";
+  }, 350);
+}
+    const discarded =
+      findDiscardedLetter(
+        currentPuzzle.start,
+        currentPuzzle.target1
+      );
+
+
+    /*
+    Briefly retire the letter
+    discarded from the first move.
+    */
+
+    if(discarded){
+      disableKey(discarded);
+    }
+
+
+    showToast(
+  "First row solved",
+  3000
+);
+
+
+    setTimeout(
+      () => {
+
+        currentRow = 2;
+
+
+        /*
+        Important:
+        A discarded letter from Row 2
+        may legitimately return as the
+        new letter on Row 3.
+        */
+
+        
+enableAllKeys();
+        renderBoard();
+if(discarded){
+  disableKey(discarded);
+}
+        
+
+      },
+      650
+    );
+
+    return;
+  }
+if (
+  currentRow === 2 &&
+  (currentPuzzle.start.length === 4 ||
+   currentPuzzle.expandedMode === true)
+) {
+
+  pulseRowGreen(2);
+showToast(
+  "Second row solved",
+  3000
+);
+  setTimeout(
+    () => {
+      currentRow = 3;
+      enableAllKeys();
+      renderBoard();
+      const discarded1 = findDiscardedLetter(
+  currentPuzzle.start,
+  currentPuzzle.target1
+);
+
+const discarded2 = findDiscardedLetter(
+  currentPuzzle.target1,
+  currentPuzzle.target2
+);
+
+if(discarded1){
+  disableKey(discarded1);
+}
+
+if(discarded2){
+  disableKey(discarded2);
+}
+    },
+    650
+  );
+
+  return;
+}
+
+  /*
+  FINAL ROW CORRECT
+  */
+
+  if (
+  currentRow === (
+    currentPuzzle.rowCount ||
+    (currentPuzzle.start.length === 4 ? 4 : 3)
+  ) - 1
+) {
+
+    gameComplete = true;
+const boxUpBtn = document.getElementById("boxUpBtn");
+boxUpBtn.disabled = false;
+boxUpBtn.classList.remove("level2-locked");
+boxUpBtn.classList.add("level2-ready");
+    pulseRowGreen(currentRow);
+
+    showToast(
+  isBoxUpMode
+    ? "ROUND 2 COMPLETE — Come back tomorrow for a new challenge!"
+    : "BOXED solved!",
+  isBoxUpMode ? 10000 : 1700
+);
+if (isBoxUpMode) {
+  saveBoxUpCompletion();
+}
+
+    /*
+    Lock keyboard after completion.
+    */
+
+    Object.values(
+      keyElsByLetter
+    ).forEach(
+      key => {
+
+        key.classList.add(
+          "disabled"
+        );
+
+      }
+    );
+
+
+    if (!isBoxUpMode) {
+  saveCompletion();
+}
+
+  }
+
+}
+
+
+/* ---------- RESET ---------- */
+
+function resetCurrentPuzzle(){
+
+  if(!currentPuzzle){
+    return;
+  }
+
+
+  currentRow = 1;
+
+  gameComplete = false;
+
+
+  guesses = [
+    currentPuzzle.start.split(""),
+    ["","","","",""],
+    ["","","","",""]
+  ];
+
+
+  guesses[1][
+    currentPuzzle.fixed1.col
+  ] =
+    currentPuzzle.fixed1.letter;
+
+
+  guesses[2][
+    currentPuzzle.fixed2.col
+  ] =
+    currentPuzzle.fixed2.letter;
+
+
+  renderBoard();
+
+  renderKeyboard();
+
+  renderClue();
+
+  showToast(
+    "Puzzle reset"
+  );
+
+}
+
+
+/* ---------- SIMPLE COMPLETION STORAGE ---------- */
+
+function completionKey(){
+
+  const parts =
+    getNYDateParts();
+
+  return (
+    "boxed-complete-" +
+    parts.year + "-" +
+    String(parts.month)
+      .padStart(2,"0") + "-" +
+    String(parts.day)
+      .padStart(2,"0")
+  );
+}
+function boxUpCompletionKey() {
+  return "boxed-boxup-complete-" + getDailyNumber(0);
+}
+
+function saveBoxUpCompletion() {
+  try {
+    localStorage.setItem(boxUpCompletionKey(), "1");
+  } catch (error) {
+    console.warn("BOX UP! completion could not be saved.", error);
+  }
+}
+
+function hasBoxUpCompletion() {
+  try {
+    return localStorage.getItem(boxUpCompletionKey()) === "1";
+  } catch (error) {
+    return false;
+  }
+}
+
+function saveCompletion(){
+
+  try{
+
+    localStorage.setItem(
+      completionKey(),
+      "1"
+    );
+
+  }
+
+  catch(error){
+
+    console.warn(
+      "Completion could not be saved.",
+      error
+    );
+
+  }
+}
+
+
+
+function wasCompletedToday(){
+
+  try{
+
+    return (
+      localStorage.getItem(
+        completionKey()
+      ) === "1"
+    );
+
+  }
+
+  catch(error){
+
+    return false;
+
+  }
+
+}
+
+
+/* ---------- MODAL OPEN / CLOSE ---------- */
+
+function openModal(selector){
+
+  const modal =
+    document.querySelector(
+      selector
+    );
+
+  if(modal){
+    modal.classList.add(
+      "on"
+    );
+  }
+
+}
+
+
+function closeModal(selector){
+
+  const modal =
+    document.querySelector(
+      selector
+    );
+
+  if(modal){
+    modal.classList.remove(
+      "on"
+    );
+  }
+
+}
+
+
+/* ---------- YESTERDAY'S SOLUTION ---------- */
+
+function showYesterdaySolution(){
+
+  const yesterday =
+    getYesterdayPuzzle();
+
+  const text =
+    document.getElementById(
+      "yesterdayText"
+    );
+
+
+  text.textContent =
+    yesterday.solutionText;
+
+
+  openModal(
+    "#yesterdayModal"
+  );
+
+}
+
+
+/* ---------- BUTTON WIRING ---------- */
+
+document
+  .getElementById(
+    "resetBtn"
+  )
+  .addEventListener(
+    "click",
+    resetCurrentPuzzle
+  );
+
+
+document
+  .getElementById(
+    "rulesBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      openModal(
+        "#rulesModal"
+      );
+
+    }
+  );
+
+document
+  .getElementById("boxUpBtn")
+  .addEventListener("click", () => {
+if (hasBoxUpCompletion()) {
+  showToast("ROUND 2 already completed today — come back tomorrow!");
+  return;
+}
+new Audio("https://01a0991e-941a-73d3-b557-0fd6bba7fe5d.codepenusercontent.com/66952__benboncan__boxing-bell-1.mp3").play();
+    isBoxUpMode = true;
+    const round2Day = getDailyNumber(0) + 1;
+
+const round2Slot = ((round2Day % 5) + 5) % 5;
+
+const useFourLetter = round2Slot === 2;
+
+if(useFourLetter){
+  const fourIndex =
+    ((round2Day * 47 + 23) % FOUR_LETTER_PUZZLES.length +
+      FOUR_LETTER_PUZZLES.length) %
+    FOUR_LETTER_PUZZLES.length;
+
+  loadPuzzle(FOUR_LETTER_PUZZLES[fourIndex]);
+
+} else if (round2Slot === 1) {
+  const expandedIndex =
+    ((Math.floor(round2Day / 3) * 47 + 23) %
+      ROUND2_5X4_BANK.length +
+      ROUND2_5X4_BANK.length) %
+    ROUND2_5X4_BANK.length;
+
+  loadPuzzle(
+    makeExpandedPuzzle(ROUND2_5X4_BANK[expandedIndex])
+  );
+} else if (round2Slot === 3) {
+  startPick3();
+
+} else if (round2Slot === 4) {
+  window.startPick4();
+} else {
+
+  const total = FIVE_LETTER_PUZZLES.length;
+  const round2Offset = Math.floor(total / 2);
+
+  const boxUpIndex =
+    (((round2Day + round2Offset) * 47 + 23) % total + total) % total;
+
+  loadPuzzle(FIVE_LETTER_PUZZLES[boxUpIndex]);
+}
+
+
+  });
+  // TEMPORARY TEST — 5x4 Expanded ROUND 2
+function testExpandedRound2() {
+  const words = ROUND2_5X4_BANK[0];
+  const puzzle = makeExpandedPuzzle(words);
+
+  isBoxUpMode = true;
+  loadPuzzle(puzzle);
+}
+
+document
+  .getElementById(
+    "yesterdayBtn"
+  )
+  .addEventListener(
+    "click",
+    showYesterdaySolution
+  );
+
+
+/* ---------- MODAL CLOSE BUTTONS ---------- */
+
+document
+  .querySelectorAll(
+    "[data-close-modal]"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          closeModal(
+            button.dataset
+              .closeModal
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+/* ---------- TAP OUTSIDE MODAL TO CLOSE ---------- */
+
+document
+  .querySelectorAll(
+    ".modal-overlay"
+  )
+  .forEach(
+    modal => {
+
+      modal.addEventListener(
+        "click",
+        event => {
+
+          if(
+            event.target === modal
+          ){
+
+            modal.classList.remove(
+              "on"
+            );
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+
+/* ---------- ESCAPE KEY CLOSE ---------- */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if(
+      event.key ===
+      "Escape"
+    ){
+
+      document
+        .querySelectorAll(
+          ".modal-overlay.on"
+        )
+        .forEach(
+          modal => {
+
+            modal.classList.remove(
+              "on"
+            );
+
+          }
+        );
+
+    }
+
+  }
+);
+  /* =========================================================
+   PART 5 — INITIALIZATION / COMPLETED STATE / FINAL CLOSE
+   ========================================================= */
+
+
+/* ---------- RESTORE COMPLETED STATE ---------- */
+
+function restoreCompletedState(){
+
+  if(
+    !wasCompletedToday()
+  ){
+    return;
+  }
+
+
+  /*
+  Show the fully solved board.
+  */
+
+  guesses = [
+    currentPuzzle.start.split(""),
+    currentPuzzle.target1.split(""),
+    currentPuzzle.target2.split("")
+  ];
+
+
+  currentRow = 2;
+
+  gameComplete = true;
+const boxUpBtn = document.getElementById("boxUpBtn");
+
+if (boxUpBtn && !hasBoxUpCompletion()) {
+  boxUpBtn.disabled = false;
+  boxUpBtn.classList.remove("level2-locked");
+  boxUpBtn.classList.add("level2-ready");
+}
+
+  renderBoard();
+
+  renderKeyboard();
+
+  renderClue();
+
+
+  /*
+  Lock keyboard because today's
+  puzzle has already been completed.
+  */
+
+  Object.values(
+    keyElsByLetter
+  ).forEach(
+    key => {
+
+      key.classList.add(
+        "disabled"
+      );
+
+    }
+  );
+
+}
+
+
+/* ---------- INITIALIZE TODAY ---------- */
+
+function initBOXED(){
+
+  currentPuzzle =
+    getTodayPuzzle();
+
+
+  loadPuzzle(
+    currentPuzzle
+  );
+
+
+  restoreCompletedState();
+
+
+  /*
+  Console checks are invisible
+  to players but useful while testing.
+  */
+
+  console.log(
+    "Today:",
+    currentPuzzle.solutionText
+  );
+
+  console.log(
+    "Clue:",
+    currentPuzzle.clue
+  );
+
+  console.log(
+    "Keyboard:",
+    currentPuzzle.keyboard.join("")
+  );
+
+}
+
+
+/* ---------- SAFETY VALIDATION ---------- */
+
+function validatePuzzleLibrary(){
+
+  let passed = 0;
+
+
+  PUZZLES.forEach(
+    (puzzle, index) => {
+
+      const start =
+        puzzle.start;
+
+      const middle =
+        puzzle.target1;
+
+      const final =
+        puzzle.target2;
+
+
+      const wordsAreIsograms =
+        [start,middle,final]
+          .every(
+            word =>
+              word.length === 5 &&
+              new Set(word).size === 5
+          );
+
+
+      const moveOneValid =
+        isValidTransformation(
+          start,
+          middle
+        );
+
+
+      const moveTwoValid =
+        isValidTransformation(
+          middle,
+          final
+        );
+
+
+      const keyboardValid =
+        puzzle.keyboard.length === 8 &&
+        new Set(
+          puzzle.keyboard
+        ).size === 8;
+
+
+      const allUsedLetters =
+        new Set(
+          (
+            start +
+            middle +
+            final
+          ).split("")
+        );
+
+
+      const keyboardContainsAll =
+        [...allUsedLetters]
+          .every(
+            letter =>
+              puzzle.keyboard.includes(
+                letter
+              )
+          );
+
+
+      const fixedOneValid =
+        middle[
+          puzzle.fixed1.col
+        ] ===
+        puzzle.fixed1.letter;
+
+
+      const fixedTwoValid =
+        final[
+          puzzle.fixed2.col
+        ] ===
+        puzzle.fixed2.letter;
+
+
+      if(
+        wordsAreIsograms &&
+        moveOneValid &&
+        moveTwoValid &&
+        keyboardValid &&
+        keyboardContainsAll &&
+        fixedOneValid &&
+        fixedTwoValid
+      ){
+
+        passed++;
+
+      }
+
+      else {
+
+        console.warn(
+          "Puzzle validation failed:",
+          index,
+          puzzle
+        );
+
+      }
+
+    }
+  );
+/* =========================================================
+   PART 6 — BACK / ENTER + PERCH BRANDING
+   ========================================================= */
+
+
+/* ---------- REVISED KEYBOARD ---------- */
+
+function renderKeyboard(){
+
+  const kb1 =
+    document.getElementById("kb1");
+
+  const kb2 =
+    document.getElementById("kb2");
+
+  kb1.innerHTML = "";
+  kb2.innerHTML = "";
+
+  keyElsByLetter = {};
+
+
+  /*
+    TOP ROW:
+    first 4 puzzle letters
+  */
+
+  currentPuzzle.keyboard
+    .slice(0, currentPuzzle.expandedMode ? 3 : 4)
+    .forEach(letter => {
+
+      const key =
+        document.createElement("button");
+
+      key.type = "button";
+      key.className = "key";
+      key.textContent = letter;
+
+      key.addEventListener(
+        "click",
+        () => handleKey(letter)
+      );
+
+      keyElsByLetter[letter] = key;
+
+      kb1.appendChild(key);
+
+    });
+
+
+  /*
+    BOTTOM ROW:
+    BACK + remaining 4 letters + ENTER
+  */
+
+  const back =
+    document.createElement("button");
+
+  back.type = "button";
+  back.className =
+    "key boxed-control-key";
+ back.style.setProperty("width", "48px", "important");
+back.style.setProperty("min-width", "48px", "important");
+back.style.setProperty("max-width", "48px", "important");
+back.style.setProperty("height", "34px", "important");
+back.style.setProperty("flex", "0 0 48px", "important");
+back.style.setProperty("padding", "0", "important");
+  back.innerHTML =
+    "⌫&nbsp; BACK";
+
+  back.setAttribute(
+    "aria-label",
+    "Back"
+  );
+
+  back.addEventListener(
+    "click",
+    handleBack
+  );
+
+  kb2.appendChild(back);
+
+
+  currentPuzzle.keyboard
+    .slice(currentPuzzle.expandedMode ? 3 : 4)
+    .forEach(letter => {
+
+      const key =
+        document.createElement("button");
+
+      key.type = "button";
+      key.className = "key";
+      key.textContent = letter;
+
+      key.addEventListener(
+        "click",
+        () => handleKey(letter)
+      );
+
+      keyElsByLetter[letter] = key;
+
+      kb2.appendChild(key);
+
+    });
+
+
+  const enter =
+    document.createElement("button");
+
+  enter.type = "button";
+  enter.className =
+    "key boxed-control-key";
+enter.style.width = "50px";
+enter.style.minWidth = "50px";
+enter.style.maxWidth = "50px";
+enter.style.paddingLeft = "0";
+enter.style.paddingRight = "0";
+  enter.textContent = "ENTER";
+
+  enter.addEventListener(
+    "click",
+    handleEnter
+  );
+
+  kb2.appendChild(enter);
+  if (currentPuzzle.expandedMode) {
+  const extraKeys = currentPuzzle.keyboard.slice(6, 9);
+
+  extraKeys.forEach(letter => {
+    const key = document.createElement("button");
+    key.type = "button";
+    key.className = "key";
+    key.textContent = letter;
+    key.addEventListener("click", () => handleKey(letter));
+    keyElsByLetter[letter] = key;
+    kb2.appendChild(key);
+  });
+}
+if (currentPuzzle.expandedMode === true) {
+  const letters = currentPuzzle.keyboard.slice(0, 9);
+  const keys = letters.map(letter => keyElsByLetter[letter]);
+
+  kb1.innerHTML = "";
+  kb2.innerHTML = "";
+
+  kb1.style.display = "grid";
+  kb1.style.gridTemplateColumns = "repeat(3,  1fr)";
+
+  keys.forEach(key => {
+    if (key) kb1.appendChild(key);
+  });
+
+  kb2.appendChild(back);
+  kb2.appendChild(enter);
+  if (currentPuzzle.expandedMode === true) {
+  kb2.style.display = "flex";
+  kb2.style.justifyContent = "space-between";
+  kb2.style.width = "440px";
+  kb2.style.maxWidth = "100%";
+  kb2.style.margin = "0 auto";
+   back.style.setProperty("transform", "translate(-28px, 48px)", "important");
+enter.style.setProperty("transform", "translate(28px, 48px)", "important");
+}
+}
+}
+
+
+/* ---------- REVISED LETTER ENTRY ---------- */
+
+/*
+Letters no longer submit automatically.
+The player chooses when to press ENTER.
+*/
+
+function handleKey(letter){
+
+  if(gameComplete){
+    return;
+  }
+
+  if(
+    currentRow < 1 ||
+    currentRow > (
+  currentPuzzle.expandedMode || currentPuzzle.start.length === 4
+    ? 3
+    : 2
+)
+  ){
+    return;
+  }
+
+
+  if(
+    guesses[currentRow]
+      .includes(letter)
+  ){
+
+    showToast(
+      "Use each letter only once"
+    );
+
+    return;
+  }
+
+
+  const col =
+    findNextOpenCell(
+      currentRow
+    );
+
+
+  if(col === -1){
+
+    showToast(
+      "Press ENTER or BACK"
+    );
+
+    return;
+  }
+
+
+  guesses[currentRow][col] =
+    letter;
+
+  renderBoard();
+
+}
+
+
+/* ---------- BACK BUTTON ---------- */
+
+function handleBack(){
+
+  if(gameComplete){
+    return;
+  }
+
+
+  /*
+  Remove the most recently entered
+  non-fixed letter.
+  */
+
+  for(
+   let col = currentPuzzle.start.length - 1; 
+    col >= 0;
+    col--
+  ){
+
+    if(
+      !isFixedCell(
+        currentRow,
+        col
+      ) &&
+      guesses[currentRow][col]
+    ){
+
+      guesses[currentRow][col] = "";
+
+      renderBoard();
+
+      return;
+    }
+
+  }
+
+}
+
+
+/* ---------- ENTER BUTTON ---------- */
+
+function handleEnter(){
+
+  if(gameComplete){
+    return;
+  }
+
+
+  if(
+    !guesses[currentRow]
+      .every(Boolean)
+  ){
+
+    showToast(
+      "Complete the row first"
+    );
+
+    return;
+  }
+
+
+  submitCurrentRow();
+
+}
+
+
+/* ---------- CONTROL BUTTON STYLING ---------- */
+
+const boxedPatchStyle =
+  document.createElement("style");
+
+boxedPatchStyle.textContent = `
+
+  .boxed-control-key{
+    min-width:52px;
+    padding-left:6px;
+    padding-right:6px;
+    font-size:10px;
+    letter-spacing:.03em;
+  }
+
+  #kb2{
+    flex-wrap:nowrap;
+  }
+
+  @media(max-width:520px){
+
+    .boxed-control-key{
+    width:46px;
+min-width:46px;
+max-width:46px;
+padding-left:0;
+padding-right:0;
+      font-size:9px;
+    }
+
+    .kb-row{
+      gap:5px;
+    }
+
+  }
+
+`;
+
+document.head.appendChild(
+  boxedPatchStyle
+);
+
+
+/* =========================================================
+   AUTHENTIC PERCH FOOTER BRANDING
+   ========================================================= */
+
+function correctPerchBranding(){
+
+  const perch =
+    document.querySelector(
+      ".perch-link"
+    );
+
+  if(!perch){
+    return;
+  }
+
+
+  /*
+    Remove the old plain-text period
+    immediately after the link.
+  */
+
+  const after =
+    perch.nextSibling;
+
+  if(
+    after &&
+    after.nodeType === Node.TEXT_NODE
+  ){
+
+    after.textContent =
+      after.textContent.replace(
+        /^\./,
+        ""
+      );
+
+  }
+
+
+  /*
+    Match the actual PlayPerch title:
+
+    p  turquoise
+    e  red
+    r  turquoise
+    c  turquoise
+    h  turquoise
+    .  red
+  */
+
+  perch.innerHTML = `
+    <span style="color:#58D8D4">p</span>
+    <span style="color:#FF4F55">e</span>
+    <span style="color:#58D8D4">r</span>
+    <span style="color:#58D8D4">c</span>
+    <span style="color:#58D8D4">h</span>
+    <span style="color:#FF4F55">.</span>
+  `;
+
+}
+
+
+correctPerchBranding();
+
+  console.log(
+    `BOXED validation: ${passed}/${PUZZLES.length} puzzles passed.`
+  );
+
+}
+
+
+/* ---------- START GAME ---------- */
+
+validatePuzzleLibrary();
+
+initBOXED();
+/* FINAL KEYBOARD REFRESH */
+/* FINAL BACK + ENTER FIX */
+
+function addBoxedControls(){
+
+  const kb2 = document.getElementById("kb2");
+
+  if(!kb2) return;
+
+  /* Prevent duplicates */
+  kb2
+    .querySelectorAll(".final-control")
+    .forEach(el => el.remove());
+
+
+  /* BACK */
+  const back = document.createElement("button");
+
+  back.type = "button";
+  back.className = "key final-control";
+  back.innerHTML = "⌫ BACK";
+
+  back.style.minWidth = "62px";
+  back.style.fontSize = "9px";
+
+  back.addEventListener(
+    "click",
+    handleBack
+  );
+
+  kb2.prepend(back);
+
+
+  /* ENTER */
+  const enter = document.createElement("button");
+
+  enter.type = "button";
+  enter.className = "key final-control";
+  enter.textContent = "ENTER";
+
+  enter.style.minWidth = "62px";
+  enter.style.fontSize = "9px";
+
+  enter.addEventListener(
+    "click",
+    handleEnter
+  );
+
+  kb2.appendChild(enter);
+}
+
+/* ---------- BACK ---------- */
+
+function handleBack(){
+
+  if(gameComplete){
+    return;
+  }
+
+  for(let col = 4; col >= 0; col--){
+
+    if(
+      !isFixedCell(currentRow, col) &&
+      guesses[currentRow][col]
+    ){
+
+      guesses[currentRow][col] = "";
+
+      renderBoard();
+
+      return;
+    }
+  }
+}
+
+
+/* ---------- ENTER ---------- */
+
+function handleEnter(){
+
+  if(gameComplete){
+    return;
+  }
+
+  if(
+    !guesses[currentRow].every(Boolean)
+  ){
+
+    showToast(
+      "Complete the row first"
+    );
+
+    return;
+  }
+
+  submitCurrentRow();
+}
+/*
+Add the controls to today's already-rendered keyboard.
+*/
+addBoxedControls();
+
+
+/*
+Also make sure RESET and future redraws
+put BACK and ENTER back automatically.
+*/
+const originalRenderKeyboard = renderKeyboard;
+
+renderKeyboard = function(){
+
+  originalRenderKeyboard();
+
+  addBoxedControls();
+
+};
+  /* REMOVE FOOTER DIVIDER LINE */
+
+const footerLineFix = document.createElement("style");
+
+footerLineFix.textContent = `
+  .perch-promo,
+  .cross-promo,
+  .footer-promo {
+    border-top: none !important;
+  }
+`;
+
+document.head.appendChild(footerLineFix);
+  document.querySelector(".footer-crosspromo").style.borderTop = "none";
+  /* =========================================================
+   BOXED — ORIGINAL VISUAL DETAILS
+   Red fixed clues + anchor letter reveal
+   ========================================================= */
+
+
+/* ---------- RED FIXED CLUE LETTERS ---------- */
+
+const boxedOriginalVisuals =
+  document.createElement("style");
+
+boxedOriginalVisuals.textContent = `
+
+  /* Fixed clue letters in playable rows */
+  .cell.fixed,
+  .tile.fixed,
+  [data-fixed="true"] {
+    color: #ff4f55 !important;
+  }
+
+  /* Anchor entrance */
+  @keyframes boxedAnchorReveal {
+    0% {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .boxed-anchor-reveal {
+    opacity: 0;
+    animation:
+      boxedAnchorReveal
+      420ms
+      ease-out
+      forwards;
+  }
+
+`;
+
+document.head.appendChild(
+  boxedOriginalVisuals
+);
+
+
+/* ---------- ANIMATE STARTING ANCHOR ---------- */
+
+function animateStartingAnchor(){
+
+  const firstRow =
+    document.querySelectorAll(
+      ".board-row"
+    )[0];
+
+  if(!firstRow){
+    return;
+  }
+
+  const cells =
+    firstRow.querySelectorAll(
+      ".cell, .tile"
+    );
+
+  cells.forEach(
+    (cell, index) => {
+
+      cell.classList.remove(
+        "boxed-anchor-reveal"
+      );
+
+      cell.style.animationDelay =
+        `${index * 110}ms`;
+
+      void cell.offsetWidth;
+
+      cell.classList.add(
+        "boxed-anchor-reveal"
+      );
+
+    }
+  );
+
+}
+
+
+/*
+Run once when today's puzzle appears.
+*/
+
+setTimeout(
+  animateStartingAnchor,
+  80
+);
+  /* FINAL ANCHOR VISUAL CORRECTION */
+
+const anchorVisualFix = document.createElement("style");
+
+anchorVisualFix.textContent = `
+
+  /* Starting word stays white/gray */
+  .row[data-row="0"] .cell.fixed {
+    color: var(--tileTextGray) !important;
+  }
+
+  /* Only supplied clue letters are red */
+  .row[data-row="1"] .cell.fixed,
+  .row[data-row="2"] .cell.fixed {
+    color: #ff4f55 !important;
+  }
+
+  @keyframes boxedStartReveal {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+`;
+
+document.head.appendChild(anchorVisualFix);
+
+
+/* LETTER-BY-LETTER STARTING WORD REVEAL */
+
+/* RANDOM-ORDER SUSPENSE REVEAL */
+
+function revealStartingWord(){
+
+  const cells = Array.from(
+    document.querySelectorAll(
+      '.row[data-row="0"] .cell'
+    )
+  );
+
+  if (!cells.length) return;
+
+  /* Hide all five letters */
+  cells.forEach(cell => {
+    cell.style.opacity = "0";
+    cell.style.animation = "none";
+  });
+
+  /* Randomize the order */
+  const shuffled = cells.slice();
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [shuffled[i], shuffled[j]] =
+      [shuffled[j], shuffled[i]];
+  }
+
+  /* Reveal one letter at a time */
+  shuffled.forEach((cell, index) => {
+
+    setTimeout(() => {
+      cell.style.animation =
+        "boxedStartReveal 420ms ease-out forwards";
+    }, 250 + (index * 2210));
+
+  });
+
+}
+
+/* Start after the board has rendered */
+setTimeout(
+  revealStartingWord,
+  120
+);
+  /* =========================================================
+   BOXED — INTERIOR FIXED-LETTER POSITIONS ONLY
+   Columns 2, 3, and 4
+   ========================================================= */
+
+function makeInteriorFixed(previousWord, targetWord, seed){
+
+  const allowedColumns = [1, 2, 3]; // columns 2, 3, 4
+
+  const choices = allowedColumns
+    .map(col => ({
+      col: col,
+      letter: targetWord[col]
+    }))
+    .filter(choice => {
+
+      const letter = choice.letter;
+
+      return (
+        previousWord.includes(letter) &&
+        previousWord[choice.col] !== letter
+      );
+
+    });
+
+  return choices[
+    seed % choices.length
+  ];
+}
+
+
+/* Reassign both red clue letters in all 150 puzzles */
+
+PUZZLES.forEach((puzzle, index) => {
+
+  puzzle.fixed1 =
+    makeInteriorFixed(
+      puzzle.start,
+      puzzle.target1,
+      index
+    );
+
+  puzzle.fixed2 =
+    makeInteriorFixed(
+      puzzle.target1,
+      puzzle.target2,
+      index + 1
+    );
+
+});
+
+
+/* Refresh today's puzzle with the new interior clues */
+
+currentPuzzle = getTodayPuzzle();
+
+loadPuzzle(currentPuzzle);
+/* =========================================================
+   BOXED — LOCAL STREAK SYSTEM
+   ========================================================= */
+
+const BOXED_STREAK_KEY = "boxed-streak-stats-v1";
+
+
+/* ---------- DATE HELPERS ---------- */
+
+function boxedDateKey(offsetDays = 0){
+
+  const now = new Date();
+
+  const parts = getNYDateParts(now);
+
+  const utc = new Date(
+    Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day + offsetDays
+    )
+  );
+
+  return (
+    utc.getUTCFullYear() +
+    "-" +
+    String(utc.getUTCMonth() + 1).padStart(2,"0") +
+    "-" +
+    String(utc.getUTCDate()).padStart(2,"0")
+  );
+
+}
+
+
+function boxedDisplayDate(){
+
+  const parts = getNYDateParts();
+
+  return (
+    parts.month +
+    "/" +
+    parts.day
+  );
+
+}
+
+
+/* ---------- READ / WRITE STATS ---------- */
+
+function getBoxedStats(){
+
+  try{
+
+    const saved =
+      JSON.parse(
+        localStorage.getItem(
+          BOXED_STREAK_KEY
+        )
+      );
+
+    return saved || {
+      currentStreak: 0,
+      bestStreak: 0,
+      gamesSolved: 0,
+      lastSolvedDate: null
+    };
+
+  }
+
+  catch(error){
+
+    return {
+      currentStreak: 0,
+      bestStreak: 0,
+      gamesSolved: 0,
+      lastSolvedDate: null
+    };
+
+  }
+
+}
+
+
+function saveBoxedStats(stats){
+
+  try{
+
+    localStorage.setItem(
+      BOXED_STREAK_KEY,
+      JSON.stringify(stats)
+    );
+
+  }
+
+  catch(error){
+
+    console.warn(
+      "BOXED streak could not be saved.",
+      error
+    );
+
+  }
+
+}
+
+
+/* ---------- RECORD TODAY'S COMPLETION ---------- */
+
+function recordBoxedCompletion(){
+
+  const stats =
+    getBoxedStats();
+
+  const today =
+    boxedDateKey(0);
+
+  const yesterday =
+    boxedDateKey(-1);
+
+
+  /*
+    Prevent reloading/replaying today's puzzle
+    from increasing the streak or solved count.
+  */
+
+  if(
+    stats.lastSolvedDate === today
+  ){
+
+    return stats;
+
+  }
+
+
+  /*
+    Yesterday solved = streak continues.
+    Otherwise today begins a new streak.
+  */
+
+  if(
+    stats.lastSolvedDate === yesterday
+  ){
+
+    stats.currentStreak += 1;
+
+  }
+
+  else {
+
+    stats.currentStreak = 1;
+
+  }
+
+
+  stats.gamesSolved += 1;
+
+
+  stats.bestStreak =
+    Math.max(
+      stats.bestStreak,
+      stats.currentStreak
+    );
+
+
+  stats.lastSolvedDate =
+    today;
+
+
+  saveBoxedStats(stats);
+
+  return stats;
+
+}
+
+
+/* ---------- COMPLETION PANEL ---------- */
+
+function createBoxedCompletionPanel(){
+
+  if(
+    document.getElementById(
+      "boxedCompletionPanel"
+    )
+  ){
+    return;
+  }
+
+
+  const panel =
+    document.createElement("div");
+
+  panel.id =
+    "boxedCompletionPanel";
+
+  panel.innerHTML = `
+    <div class="boxed-results-date"></div>
+
+    <div class="boxed-results-solved">
+      SOLVED <span class="boxed-check">✓</span>
+    </div>
+
+    <div class="boxed-results-streak"></div>
+
+    <div class="boxed-results-stat">
+      Best Streak:
+      <strong class="boxed-best"></strong>
+    </div>
+
+    <div class="boxed-results-stat">
+      Games Solved:
+      <strong class="boxed-games"></strong>
+    </div>
+    <button id="boxedShareBtn" class="boxed-share-btn">
+  SHARE
+</button>
+  `;
+
+
+  /*
+    Insert immediately above the footer.
+  */
+
+  const footer =
+    document.querySelector(
+      ".footer"
+    );
+
+  if(footer){
+
+    footer.parentNode.insertBefore(
+      panel,
+      footer
+    );
+
+  }
+
+}
+
+
+/* ---------- RESULTS STYLING ---------- */
+
+const boxedStreakStyle =
+  document.createElement("style");
+
+boxedStreakStyle.textContent = `
+
+  #boxedCompletionPanel{
+    display:none;
+    width:min(340px,92%);
+    margin:18px auto 14px;
+    padding:15px 18px 14px;
+    text-align:center;
+    border:1px solid rgba(194,204,223,.24);
+    border-radius:14px;
+    background:rgba(24,28,36,.72);
+    color:#f7f7f7;
+  }
+
+  #boxedCompletionPanel.show{
+    display:block;
+    animation:
+      boxedResultsFade
+      650ms
+      ease-out
+      forwards;
+  }
+
+  @keyframes boxedResultsFade{
+    from{
+      opacity:0;
+      transform:translateY(8px);
+    }
+
+    to{
+      opacity:1;
+      transform:translateY(0);
+    }
+  }
+
+  .boxed-results-date{
+    color:#bfc7d8;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.12em;
+    margin-bottom:5px;
+  }
+
+  .boxed-results-solved{
+    font-size:17px;
+    font-weight:1000;
+    letter-spacing:.08em;
+    margin-bottom:10px;
+  }
+
+  .boxed-check{
+    color:#43d17d;
+  }
+
+  .boxed-results-streak{
+    font-size:13px;
+    font-weight:900;
+    margin-bottom:7px;
+  }
+
+  .boxed-results-stat{
+    color:#bfc7d8;
+    font-size:11px;
+    margin-top:3px;
+  }
+
+  .boxed-results-stat strong{
+    color:#f7f7f7;
+  }
+
+`;
+
+document.head.appendChild(
+  boxedStreakStyle
+);
+
+
+createBoxedCompletionPanel();
+
+
+/* ---------- SHOW RESULTS ---------- */
+
+function showBoxedCompletion(stats){
+
+  const panel =
+    document.getElementById(
+      "boxedCompletionPanel"
+    );
+
+  if(!panel){
+    return;
+  }
+
+
+  panel.querySelector(
+    ".boxed-results-date"
+  ).textContent =
+    `BOXED — ${boxedDisplayDate()}`;
+
+
+  panel.querySelector(
+    ".boxed-results-streak"
+  ).textContent =
+    `🔥 Current Streak: ${stats.currentStreak}`;
+
+
+  panel.querySelector(
+    ".boxed-best"
+  ).textContent =
+    stats.bestStreak;
+
+
+  panel.querySelector(
+    ".boxed-games"
+  ).textContent =
+    stats.gamesSolved;
+
+
+  panel.classList.add(
+    "show"
+  );
+
+}
+
+
+/* ---------- CONNECT TO SUCCESSFUL SOLVE ---------- */
+
+/*
+saveCompletion() already runs only when the
+final row is successfully completed.
+
+We preserve the original function, then add
+the streak update immediately afterward.
+*/
+
+const originalSaveCompletion =
+  saveCompletion;
+
+
+saveCompletion = function(){
+
+  originalSaveCompletion();
+
+  const stats =
+    recordBoxedCompletion();
+
+  showBoxedCompletion(
+    stats
+  );
+
+};
+
+
+/* ---------- RESTORE RESULTS AFTER RELOAD ---------- */
+
+/*
+If today's puzzle was already solved,
+show today's saved streak information
+without incrementing it again.
+*/
+
+setTimeout(() => {
+
+  if(
+    wasCompletedToday()
+  ){
+
+    const stats =
+      getBoxedStats();
+
+    showBoxedCompletion(
+      stats
+    );
+
+  }
+
+}, 250);
+  /* =========================================================
+   BOXED — SHARE
+   ========================================================= */
+
+async function shareBoxedResult(){
+
+  const stats = getBoxedStats();
+
+  
+
+const shareText =
+`BOXED — ${boxedDisplayDate()}
+MORE THAN JUST WORDS
+
+SOLVED ✅
+
+🟦🟦🟥🟦🟦
+🟦🟥🟦🟦🟦
+🟦🟦🟥🟦🟦
+
+boxed-daily.com`;
+
+
+
+
+  const shareUrl = "https://boxed-daily.com";
+
+
+  /* Native iPhone / iPad share sheet */
+  if(navigator.share){
+
+    try{
+
+      await navigator.share({
+        title: "BOXED",
+        text: shareText
+      });
+
+    }
+
+    catch(error){
+
+      /*
+      Ignore normal cancellation by the player.
+      */
+      if(error.name !== "AbortError"){
+        console.warn(
+          "BOXED share failed:",
+          error
+        );
+      }
+
+    }
+
+    return;
+  }
+
+
+  /* Fallback for browsers without native sharing */
+
+  const fallbackText =
+    shareText + "\n" + shareUrl;
+
+  try{
+
+    await navigator.clipboard.writeText(
+      fallbackText
+    );
+
+    showToast(
+      "Result copied"
+    );
+
+  }
+
+  catch(error){
+
+    showToast(
+      "Unable to share"
+    );
+
+  }
+
+}
+
+
+/* Connect the completion-panel button */
+
+document
+  .getElementById(
+    "boxedShareBtn"
+  )
+  .addEventListener(
+    "click",
+    shareBoxedResult
+  );
+  /* BOXED — SHARE BUTTON STYLE */
+
+const boxedShareStyle = document.createElement("style");
+
+boxedShareStyle.textContent = `
+  .boxed-share-btn{
+    margin-top: 8px;
+    padding: 6px 18px;
+
+    background: transparent;
+    color: #d8deea;
+
+    border: 1px solid #5f7fa8;
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+
+    cursor: pointer;
+  }
+
+  .boxed-share-btn:active{
+    transform: scale(0.97);
+  }
+`;
+
+document.head.appendChild(boxedShareStyle);
+  /* =========================================================
+   BOXED — 30 SECOND COMPLETION PANEL
+   ========================================================= */
+
+let boxedCompletionTimer = null;
+
+
+/* Hide the completion panel smoothly */
+
+function hideBoxedCompletion(){
+
+  const panel =
+    document.getElementById(
+      "boxedCompletionPanel"
+    );
+
+  if(!panel){
+    return;
+  }
+
+  panel.style.transition =
+    "opacity 700ms ease, transform 700ms ease";
+
+  panel.style.opacity = "0";
+
+  panel.style.transform =
+    "translateY(8px)";
+
+
+  setTimeout(() => {
+
+    panel.classList.remove(
+      "show"
+    );
+
+    panel.style.display = "none";
+
+    panel.style.opacity = "";
+
+    panel.style.transform = "";
+
+  }, 700);
+
+}
+
+
+/* Start / restart the 30-second timer */
+
+function startBoxedCompletionTimer(){
+
+  clearTimeout(
+    boxedCompletionTimer
+  );
+
+  boxedCompletionTimer =
+    setTimeout(
+      hideBoxedCompletion,
+      10000
+    );
+
+}
+
+
+/* Preserve the current completion display function */
+
+const originalShowBoxedCompletion =
+  showBoxedCompletion;
+
+
+/* Add timer whenever a fresh completion panel appears */
+
+showBoxedCompletion = function(stats){
+
+  originalShowBoxedCompletion(
+    stats
+  );
+
+  startBoxedCompletionTimer();
+
+};
+
+
+/* If SHARE is tapped, cancel the disappearance timer */
+
+const boxedShareButton =
+  document.getElementById(
+    "boxedShareBtn"
+  );
+
+if(boxedShareButton){
+
+  boxedShareButton.addEventListener(
+    "click",
+    () => {
+
+      clearTimeout(
+        boxedCompletionTimer
+      );
+
+    }
+  );
+
+}
+  /* FIX — ALLOW COMPLETION PANEL TO REAPPEAR */
+
+const boxedTimedShowCompletion =
+  showBoxedCompletion;
+
+showBoxedCompletion = function(stats){
+
+  const panel =
+    document.getElementById(
+      "boxedCompletionPanel"
+    );
+
+  if(panel){
+    panel.style.display = "";
+    panel.style.opacity = "";
+    panel.style.transform = "";
+  }
+
+  boxedTimedShowCompletion(stats);
+};
+ /* =========================================================
+   BOXED — STRICT 150-PUZZLE VALIDATOR
+   Diagnostic only — does NOT change puzzle data
+   ========================================================= */
+
+function boxedIsogram(word){
+  return (
+    typeof word === "string" &&
+    word.length === 5 &&
+    new Set(word).size === 5
+  );
+}
+
+
+function boxedTransitionIsValid(fromWord, toWord){
+
+  const from = new Set(fromWord);
+  const to = new Set(toWord);
+
+  const shared =
+    [...from].filter(letter =>
+      to.has(letter)
+    );
+
+  const newLetters =
+    [...to].filter(letter =>
+      !from.has(letter)
+    );
+
+  /* Exactly 4 reused + 1 new */
+  if(
+    shared.length !== 4 ||
+    newLetters.length !== 1
+  ){
+    return false;
+  }
+
+  /* A reused letter cannot remain in same column */
+  for(let col = 0; col < 5; col++){
+
+    if(
+      fromWord[col] === toWord[col]
+    ){
+      return false;
+    }
+
+  }
+
+  return true;
+}
+
+
+function boxedVerticalColumnsAreValid(
+  row1,
+  row2,
+  row3
+){
+
+  for(let col = 0; col < 5; col++){
+
+    const columnLetters = [
+      row1[col],
+      row2[col],
+      row3[col]
+    ];
+
+    if(
+      new Set(columnLetters).size !== 3
+    ){
+      return false;
+    }
+
+  }
+
+  return true;
+}
+
+
+function runBoxedStrictValidation(){
+
+  const failures = [];
+
+  PUZZLES.forEach((puzzle, index) => {
+
+    const row1 = puzzle.start;
+    const row2 = puzzle.target1;
+    const row3 = puzzle.target2;
+
+    const problems = [];
+
+
+    /* Rule 1 — all three words are 5-letter isograms */
+
+    if(!boxedIsogram(row1)){
+      problems.push("Row 1 is not a 5-letter isogram");
+    }
+
+    if(!boxedIsogram(row2)){
+      problems.push("Row 2 is not a 5-letter isogram");
+    }
+
+    if(!boxedIsogram(row3)){
+      problems.push("Row 3 is not a 5-letter isogram");
+    }
+
+
+    /* Rule 2 — valid word transition */
+
+    if(
+      !boxedTransitionIsValid(
+        row1,
+        row2
+      )
+    ){
+      problems.push(
+        "Row 1 → Row 2 transition invalid"
+      );
+    }
+
+    if(
+      !boxedTransitionIsValid(
+        row2,
+        row3
+      )
+    ){
+      problems.push(
+        "Row 2 → Row 3 transition invalid"
+      );
+    }
+
+
+    /* Rule 3 — no vertical repeats across all 3 rows */
+
+    if(
+      !boxedVerticalColumnsAreValid(
+        row1,
+        row2,
+        row3
+      )
+    ){
+      problems.push(
+        "VERTICAL COLUMN REPEAT"
+      );
+    }
+
+
+    if(problems.length){
+
+      failures.push({
+        puzzle: index + 1,
+        words: `${row1} → ${row2} → ${row3}`,
+        problems: problems
+      });
+
+    }
+
+  });
+
+
+  console.log(
+    `BOXED STRICT VALIDATION: ${
+      PUZZLES.length - failures.length
+    }/${PUZZLES.length} puzzles passed.`
+  );
+
+
+  if(failures.length){
+
+    console.table(failures);
+
+    console.warn(
+      `${failures.length} BOXED puzzle(s) need correction.`
+    );
+
+  }
+
+  else {
+
+    console.log(
+      "✅ ALL BOXED PUZZLES PASSED STRICT VALIDATION"
+    );
+
+  }
+
+
+  /* Keep failures available for inspection */
+  window.BOXED_STRICT_FAILURES =
+    failures;
+
+}
+
+
+runBoxedStrictValidation(); 
+  /* ===== BOXED: FADE UNUSED LETTERS ===== */
+
+function applyDroppedLetterFade() {
+  const tiles = document.querySelectorAll(".tile");
+
+  /* Safety check: BOXED should have 15 board tiles */
+  if (tiles.length < 15) return;
+
+  function fadeDroppedLetter(fromRow, toRow) {
+    const fromWord = guesses[fromRow].join("");
+    const toWord   = guesses[toRow].join("");
+
+    if (fromWord.length !== 5 || toWord.length !== 5) return;
+
+    const dropped = [...fromWord].find(letter => !toWord.includes(letter));
+    if (!dropped) return;
+
+    for (let col = 0; col < 5; col++) {
+      if (guesses[fromRow][col] === dropped) {
+        const tile = tiles[(fromRow * 5) + col];
+        if (tile) {
+          tile.style.opacity = "0.28";
+          tile.style.transition = "opacity .35s ease";
+        }
+        break;
+      }
+    }
+  }
+
+  /* Row 2 has been accepted */
+  if (currentRow >= 2 || gameComplete) {
+    fadeDroppedLetter(0, 1);
+  }
+
+  /* Final row has been accepted */
+  if (gameComplete) {
+    fadeDroppedLetter(1, 2);
+  }
+}
+
+
+/* Run the fade immediately after every board redraw */
+const originalRenderBoardForFade = renderBoard;
+
+renderBoard = function() {
+  originalRenderBoardForFade();
+
+  setTimeout(() => {
+    applyDroppedLetterFade();
+  }, 0);
+};
+
+</script>
+ <style>
+#kb2 .boxed-control-key,
+#kb2 .key:first-child,
+#kb2 .key:last-child {
+  width: 46px !important;
+  min-width: 46px !important;
+  max-width: 46px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  flex: 0 0 46px !important;
+  transform: translateY(1px) !important;
+  font-size: 9px !important;
+}
+</style>
+  <style>
+/* BOXED — simple completion panel */
+#boxedCompletionPanel .boxed-results-streak,
+#boxedCompletionPanel .boxed-results-stat {
+  display: none !important;
+}
+</style>
+  <style>
+#boxUpBtn.level2-ready{
+  color:var(--tileTextGray) !important;
+  border-color:var(--tileBorder) !important;
+}
+}
+#pick3Instruction.pick3NoPulse {
+  animation: none !important;
+}
+@keyframes pick3SlowPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+#pick3Instruction {
+  animation: pick3SlowPulse 3s ease-in-out infinite;
+}
+
+#pick3Instruction[style*="opacity: 0"] {
+  animation: none;
+}
+
+@keyframes pick3SlowPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+#pick3Instruction {
+  animation: pick3SlowPulse 3s ease-in-out infinite;
+}
+
+#pick3Instruction[style*="opacity: 0"] {
+  animation: none;
+}
+
+@keyframes pick3SlowPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+#pick3Instruction {
+  animation: pick3SlowPulse 3s ease-in-out infinite;
+}
+
+#pick3Instruction[style*="opacity: 0"] {
+  animation: none;
+}
+    
+@keyframes pick3SlowPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+#pick3Instruction {
+  animation: pick3SlowPulse 3s ease-in-out infinite;
+}
+
+#pick3Instruction[style*="opacity: 0"] {
+  animation: none;
+}
+
+</style>
+<script>
+
+function startPick3() {
+  let screen = document.getElementById("pick3Screen");
+
+  if (!screen) {
+    screen = document.createElement("div");
+    screen.id = "pick3Screen";
+    screen.style.cssText = `
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #11131a;
+      color: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+transform: translateY(45px);
+      gap: 24px;
+      font-family: Arial, sans-serif;
+    `;
+
+    screen.innerHTML = `
+     <div id="pick3Logo"></div>
+      <div id="pick3Board" style="display:grid;
+        grid-template-columns:repeat(5,64px);
+        gap:8px">
+        ${Array(10).fill(
+       '<div style="width:64px;height:64px;border:2px solid #587aa7;border-radius:7px;font-weight:700"></div>'   
+        ).join("")}
+      </div>
+      <div style="width:340px;
+text-align:right;
+font-size:7px;
+color:#555b69;
+letter-spacing:0.5px;
+margin-top:-18px;transform:translateX(5px);">
+PROVERBS 3:5–6
+</div>
+      <div id="pick3Keyboard"
+style="display:grid;grid-template-columns:repeat(4,52px);gap:10px;justify-content:center">
+</div>
+<div style="display:flex;justify-content:space-between;width:260px;margin-top:-95px;">
+<button id="pick3Back" type="button" style="background:#171c25;color:#fff;border:1px solid #587aa7;border-radius:20px;padding:5px 12px;font-weight:bold;transform:translateX(-45px);">BACK</button>
+<button id="pick3Enter" type="button" disabled style="opacity:1;background:#171c25;color:#fff;-webkit-text-fill-color:#fff;border:1px solid #587aa7;border-radius:20px;padding:5px 12px;font-weight:bold;transform:translateX(50px);">ENTER</button>
+</div>
+   <p id="pick3Instruction" style="color:#9ba3b5;font-size:11px;font-weight:400;letter-spacing:3px;text-align:center;width:100%;margin:42px 0 0;transition:opacity 1s ease;">Select three letters to begin.</p>  
+      <button id="pick3Close" style="display:none;padding:12px 24px">
+        RETURN TO BOXED
+      </button>
+    <div id="pick3Footer" style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-top:24;">
+  <button type="button" class="btn secondary" id="pick3Rules">RULES</button>
+  <button type="button" class="btn secondary level2-locked" id="pick3Round2" disabled>ROUND <span style="color:#ff4d5a;">2</span></button>
+  <button type="button" class="btn secondary" id="pick3Yesterday">YESTERDAY'S SOLUTION</button>
+</div>
+    `;
+
+    document.body.appendChild(screen);
+    const originalHeader = document.querySelector("#app .header");
+const originalTagline = document.querySelector("#app .tagline");
+const pick3Logo = screen.querySelector("#pick3Logo");
+
+if (originalHeader && originalTagline && pick3Logo) {
+  pick3Logo.appendChild(originalHeader.cloneNode(true));
+  pick3Logo.appendChild(originalTagline.cloneNode(true));
+  originalHeader.style.visibility = "hidden";
+  pick3Logo.style.transform = "none";
+pick3Logo.style.width = "100%";
+pick3Logo.style.display = "flex";
+pick3Logo.style.flexDirection = "column";
+  
+pick3Logo.style.alignItems = "center";
+pick3Logo.querySelectorAll(".logoGlyph .ch:not(.red)").forEach(el => {
+  el.style.transform = "translateY(-1px)";
+});
+pick3Logo.style.justifyContent = "center";
+}
+    const originalFooter = document.querySelector("#app .footer");
+if (originalFooter) {
+  const pick3Copyright = originalFooter.cloneNode(true);
+pick3Copyright.style.transform = "translateY(-35px)";
+screen.appendChild(pick3Copyright);
+}
+    
+const PICK3_BANK = [
+  ["BASED", "ABIDE", "OBEY"],
+  ["MAKER", "REALM", "KINGDOM"],
+  ["MOIST", "STORM", "TEMPEST"],
+  ["CURED", "TRUCE", "CEASEFIRE"],
+  ["VALOR", "RIVAL", "ENEMY"],
+  ["GROUT", "ROUGE", "RED"],
+  ["STYLE", "ZESTY", "PIQUANT"],
+  ["SLAIN", "BAILS", "BUCKETS"],
+  ["PRONG", "APRON", "GARMENT"],
+  ["ULCER", "RELIC", "ANTIQUE"],
+
+  ["BRAVE", "ZEBRA", "STRIPES"],
+  ["PLANT", "TALON", "CLAW"],
+  ["SPEAR", "GRAPE", "WINE"],
+  ["TRAIN", "PAINT", "CANVAS"],
+  ["CHAIR", "RANCH", "CATTLE"],
+  ["GHOST", "SOUTH", "COMPASS"],
+  ["WATER", "HEART", "PULSE"],
+  ["FLAME", "METAL", "ALLOY"],
+  ["CRANE", "OCEAN", "SALTY"],
+  ["SHORE", "HERON", "WADING"],
+
+  ["PLANE", "ANGEL", "WINGS"],
+  ["LIGHT", "THING", "OBJECT"],
+  ["BEACH", "CHEAT", "DECEIVE"],
+  ["LEMON", "CLONE", "REPLICA"],
+  ["GRAIN", "RANGE", "DISTANCE"],
+  ["WHEAT", "TEACH", "EDUCATE"],
+  ["DANCE", "CLEAN", "SPOTLESS"],
+  ["TABLE", "PETAL", "FLOWER"],
+  ["SHINE", "HIKES", "TRAILS"],
+  ["CRATE", "ALERT", "WARNING"],
+
+  ["PRIDE", "DIVER", "RESCUE"],
+  ["GROAN", "ANGER", "FURY"],
+  ["CLEAR", "GRACE", "ELEGANCE"],
+  ["SLICE", "LIVES", "EXISTS"],
+  ["BAKER", "FREAK", "UNUSUAL"],
+  ["STOVE", "COVET", "ENVY"],
+  ["NORTH", "SHORT", "BRIEF"],
+  ["SNAKE", "EARNS", "SALARY"],
+  ["TOWER", "WRITE", "AUTHOR"],
+  ["SHEAR", "HORSE", "STABLE"]
+];
+const today = new Date();
+
+const pick3Day = Math.round(
+  (
+    Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) -
+    Date.UTC(2026, 9, 17)
+  ) / 86400000
+);
+
+const pick3Index =
+  ((pick3Day % PICK3_BANK.length) + PICK3_BANK.length) %
+  PICK3_BANK.length;
+
+const pick3Puzzle = PICK3_BANK[pick3Index];
+const pick3Clue = pick3Puzzle[2];
+const realLetters = [...new Set(pick3Puzzle[0] + pick3Puzzle[1])];
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+const decoys = [...alphabet]
+  .filter(letter =>
+    !realLetters.includes(letter) &&
+    (letter !== "Q" || realLetters.includes("U"))
+  )
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 2);
+
+const keyboardLetters = [...realLetters, ...decoys]
+  .sort(() => Math.random() - 0.5);
+
+document.getElementById("pick3Keyboard").innerHTML =
+  keyboardLetters.map(letter => `
+    <button type="button" style="
+      width:52px;height:52px;
+      border:2px solid #587aa7;
+      border-radius:50%;
+      background:#171c25;
+      color:#f7f7f7;
+      font-size:20px;
+      font-weight:bold;
+    ">${letter}</button>
+  `).join("");
+   const pick3Words = [pick3Puzzle[0], pick3Puzzle[1]]; 
+let pick3Reveals = 0;
+    
+let pick3Selections = 0;
+
+const pick3Used = new Set();
+const pick3PreferredRows = [0, 1, 0];
+let pick3Phase = "select";
+let pick3ActiveRow = 0;
+    let pick3Entries = [];
+document.querySelectorAll("#pick3Keyboard button").forEach(button => {
+  button.onclick = () => {
+    if (pick3Phase === "solve") {
+  const letter = button.textContent.trim();
+if (button.disabled) return;
+      
+      const cells = screen.querySelectorAll("#pick3Board > div");
+const rowCells = [...cells].slice(
+  pick3ActiveRow * 5,
+  pick3ActiveRow * 5 + 5
+);
+const emptyCell = rowCells.find(cell =>
+  !cell.textContent.trim()
+);
+
+if (emptyCell) {
+  emptyCell.textContent = letter;
+  pick3Entries.push(letter);
+  emptyCell.style.display = "flex";
+  emptyCell.style.alignItems = "center";
+  emptyCell.style.justifyContent = "center";
+  emptyCell.style.fontSize = "28px";
+}
+      const completedWord = rowCells
+  .map(cell => cell.textContent.trim())
+  .join("");
+if (completedWord.length === 5 &&
+    completedWord !== pick3Words[pick3ActiveRow]) {
+  
+const oldToast = screen.querySelector("#pick3WrongToast");
+if (oldToast) oldToast.remove();
+
+const toast = document.createElement("div");
+toast.id = "pick3WrongToast";
+toast.textContent = "NOT QUITE — TRY AGAIN.";
+toast.style.cssText = `
+  position: fixed;
+  bottom: 55px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 85%;
+  padding: 12px 18px;
+  border: 1px solid #555;
+  border-radius: 28px;
+  background: #101116;
+  color: #f7f7f7;
+  font: 14px Arial, sans-serif;
+  letter-spacing: 2px;
+  text-align: center;
+  z-index: 100001;
+`;
+screen.appendChild(toast);
+setTimeout(() => toast.remove(), 2000);
+
+  rowCells.forEach(cell => {
+    cell.style.transition = "box-shadow 0.2s ease, border-color 0.2s ease";
+    cell.style.borderColor = "#ff5364";
+    cell.style.boxShadow = "0 0 14px #ff5364";
+    setTimeout(() => {
+      cell.style.borderColor = "#587aa7";
+      cell.style.boxShadow = "none";
+    }, 650);
+  });
+}
+if (completedWord === pick3Words[pick3ActiveRow]) {
+  rowCells.forEach((cell, index) => {
+    setTimeout(() => {
+  cell.style.background = "#238636";
+  cell.style.color = "#ffffff";
+      setTimeout(() => {
+  cell.style.background = "";
+  cell.style.color = cell.dataset.pick3Fixed === "yes"
+  ? "#ff5364" : "#ffffff";
+}, 650);
+}, 0);
+  });
+if (pick3ActiveRow === 0) {
+  pick3ActiveRow = 1;
+ const instructions = screen.querySelector("#pick3Instruction"); 
+  if (instructions) {
+    instructions.textContent = pick3Clue;
+    instructions.style.setProperty("animation", "none", "important");
+   instructions.style.opacity = "1"; 
+    instructions.style.transform = "translateY(-165px)";
+  }
+} else {
+  const instructions = screen.querySelector("#pick3Instruction");
+  if (instructions) {
+    instructions.textContent = "";
+    instructions.style.transform = "translateY(-165px)";
+    instructions.style.opacity = "1";
+    instructions.style.color = "#ff5364";
+    instructions.style.fontWeight = "bold";
+  }
+  
+const toast = document.createElement("div");
+toast.textContent = "PICK 3 COMPLETE — COME BACK TOMORROW FOR A NEW CHALLENGE!";
+toast.style.cssText = `
+  position: fixed;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 420px;
+  max-width: 80%;
+  padding: 12px 18px;
+  border: 1px solid #555;
+  border-radius: 28px;
+  background: #101116;
+  color: #f7f7f7;
+  font: 14px Arial, sans-serif;
+  letter-spacing: 2px;
+  line-height: 1.5;
+  z-index: 100001;
+`;
+screen.appendChild(toast);
+
+}
+}
+return;
+}
+  if (pick3Phase !== "select") return;
+
+    const letter = button.textContent.trim();
+    if (pick3Used.has(letter)) return;
+   
+pick3Selections++;
+ 
+const pick3Message = document.getElementById("pick3Instruction");
+
+if (pick3Message && pick3Selections < 3) {
+  pick3Message.textContent =
+    pick3Selections === 1
+      ? "Select two more letters."
+      : "Select one more letter.";
+}
+
+    pick3Used.add(letter);
+
+
+   
+
+if (!realLetters.includes(letter)) {
+  button.disabled = true;
+  button.style.transition = "opacity 0.5s ease";
+  button.style.opacity = "0.2";
+  button.style.boxShadow = "none";
+  
+if (pick3Selections === 3) {
+  pick3Phase = "solve";
+  document.getElementById("pick3Instruction").style.opacity = "0";
+  document.getElementById("pick3Footer").style.transform = "translateY(-35px)";
+
+  screen.querySelectorAll("#pick3Keyboard button").forEach(key => {
+    const needed = realLetters.includes(key.textContent.trim());
+    const selectedDecoy = !needed && pick3Used.has(key.textContent.trim());
+key.disabled = selectedDecoy;
+key.style.opacity = selectedDecoy ? "0.2" : "1";
+  });
+}
+return;
+
+}
+
+
+  
+  
+
+ 
+
+    const preferred = pick3PreferredRows[pick3Reveals];
+    const row = pick3Words[preferred].includes(letter)
+      ? preferred
+      : 1 - preferred;
+
+    const column = pick3Words[row].indexOf(letter);
+    const cells = document.querySelectorAll("#pick3Board > div");
+    const cell = cells[row * 5 + column];
+
+    if (cell) {
+      cell.textContent = letter;
+      cell.dataset.pick3Fixed = "yes";
+      cell.style.color = "#ff5364";
+      cell.style.fontWeight = "bold";
+      cell.style.fontSize = "28px";
+      cell.style.display = "flex";
+      cell.style.alignItems = "center";
+      cell.style.justifyContent = "center";
+    }
+
+    button.style.opacity = "0.35";
+    button.disabled = true;
+    pick3Reveals++;
+    if (pick3Selections === 3) {
+   pick3Phase = "solve";   
+   document.getElementById("pick3Instruction").style.opacity = "0";  
+      document.getElementById("pick3Footer").style.transform = "translateY(-35px)";
+      screen.querySelectorAll("#pick3Keyboard button").forEach(key => {
+  const letter = key.textContent.trim();
+  const needed = realLetters.includes(letter);
+
+  
+const selectedDecoy = !needed && pick3Used.has(letter);
+key.disabled = selectedDecoy;
+key.style.opacity = selectedDecoy ? "0.2" : "1";
+
+
+});
+  const instructions = screen.querySelector("p");
+  if (instructions) {
+    instructions.textContent = "Complete the first word.";
+  }
+    }
+  };
+});
+   document.getElementById("pick3Back").onclick = () => {
+  if (pick3Phase !== "solve") return;
+
+  const cells = screen.querySelectorAll("#pick3Board > div");
+  const rowCells = [...cells].slice(
+    pick3ActiveRow * 5,
+    pick3ActiveRow * 5 + 5
+  );
+
+  const lastCell = rowCells.reverse().find(cell =>
+    cell.textContent.trim() &&
+    cell.dataset.pick3Fixed !== "yes"
+  );
+
+  if (lastCell) {
+    lastCell.textContent = "";
+  }
+}; document.getElementById("pick3Close").onclick = () => {
+      screen.remove();
+    };
+
+document.getElementById("pick3Rules").onclick = () => {
+  alert(
+    "PICK 3 — HOW TO PLAY\n\n" +
+    "Three Selections. Two Words. One Puzzle.\n\n" +
+    "Select three letters to begin.\n\n" +
+    "• Every selection counts, including decoys.\n" +
+    "• Participating letters reveal fixed red letters.\n" +
+    "• Decoys reveal nothing and become unavailable.\n" +
+    "• Selected letters fade during the selection phase.\n" +
+    "• After three selections, participating letters return.\n" +
+    "• Complete both five-letter words, using each letter only once per word.\n" +
+    "• BACK removes entered letters, never fixed red letters.\n" +
+    "• Solve the first word to reveal the second clue.\n\n" +
+    "Choose wisely. Every selection matters!"
+  );
+};
+document.getElementById("pick3Yesterday").onclick = () => {
+  alert("Yesterday's Solution — Coming Soon!");
+};
+  }
+}
+  </script>
+<script>
+/* PICK 4 — Independent test puzzle bank */
+
+const PICK4_TEST_BANK = [
+  {words:['STEW','LETS','TILE','FLIT'],clue:'DART'},
+  {words:['FROM','MORE','OVER','VETO'],clue:'REJECT'},
+  {words:['SPIT','PITY','TYPE','YELP'],clue:'CRY'},
+  {words:['FLEX','SELF','LIFE','EVIL'],clue:'WICKED'},
+  {words:['MICE','ITEM','EXIT','TAXI'],clue:'UBER'},
+  {words:['LEND','DUEL','GLUE','UGLY'],clue:'EYESORE'},
+  {words:['GRIP','RIPE','PEAR','EARN'],clue:'WAGES'},
+  {words:['TINY','UNIT','NUTS','SPUN'],clue:'TWIRLED'},
+  {words:['KING','INKS','SKIT','TASK'],clue:'ASSIGN'},
+  {words:['TEAL','EATS','STEP','POST'],clue:'MAIL'},
+  {words:['SPOT','OATS','ALSO','GOAL'],clue:'SOCCER'},
+  {words:['COPE','OPEN','PENS','SNAP'],clue:'BREAK'},
+  {words:['USED','DUST','STUB','TABS'],clue:'BROWSER'},
+  {words:['NOTE','TENS','EAST','STAY'],clue:'FIXED'},
+  {words:['PLOW','OWLS','LOSE','SEAL'],clue:'GLUE'},
+  {words:['REDO','OGRE','FROG','GOLF'],clue:'CLUB'},
+  {words:['MYTH','THEM','EMIT','LIME'],clue:'CITRUS'},
+  {words:['PART','STAR','ROTS','TRIO'],clue:'THREE'},
+  {words:['SLAP','LIPS','ISLE','VEIL'],clue:'BRIDE'},
+  {words:['LEAP','APES','SAVE','VISA'],clue:'PASSPORT'},
+  {words:['LATE','DEAL','SLED','ENDS'],clue:'STORIES'},
+  {words:['MATE','TEMP','POET','EXPO'],clue:'EXHIBITION'},
+  {words:['ROPE','PROS','SPAR','WARP'],clue:'DISTORT'},
+  {words:['TONE','NEST','ANTS','SWAN'],clue:'LAKE'},
+  {words:['FATE','MEAT','ATOM','TOMB'],clue:'BURIAL'},
+  {words:['RITE','TEAR','CART','ORCA'],clue:'WHALE'},
+  {words:['KNIT','RINK','IRON','NORM'],clue:'STANDARD'},
+  {words:['GLEN','LENS','NOSE','SNOW'],clue:'NOR’EASTER'},
+  {words:['HERS','USER','RUDE','DRUM'],clue:'RHYTHM'},
+  {words:['MEAD','DATE','EDIT','TIDY'],clue:'NEAT'}
+];
+
+let pick4TestIndex = 0;
+  
+/* PICK 4 — independent playable test */
+(function () {
+  const testButton = document.getElementById("testPick4Btn");
+
+  let testIndex = 0;
+
+  window.startPick4 = function () {
+    const puzzle = PICK4_TEST_BANK[testIndex];
+    const words = puzzle.words;
+    const genuine = [...new Set(words.join(""))];
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const shuffle = a => [...a].sort(() => Math.random() - 0.5);
+    const decoys = shuffle([...alphabet].filter(c => c !== "Q" && !genuine.includes(c))).slice(0, 2);
+    const letters = shuffle([...genuine, ...decoys]);
+
+    document.getElementById("pick4Screen")?.remove();
+
+    const screen = document.createElement("div");
+    screen.id = "pick4Screen";
+    screen.style.cssText =
+      "position:fixed;inset:0;z-index:99999;background:#101116;color:white;" +
+      "overflow:auto;display:flex;align-items:center;justify-content:safe center;flex-direction:column;" +
+      "font-family:Arial,sans-serif;padding:25px 10px;box-sizing:border-box;gap:6px";
+
+    function element(tag, text, css, parent = screen) {
+      const el = document.createElement(tag);
+      if (text !== null) el.textContent = text;
+      el.style.cssText = css || "";
+      parent.appendChild(el);
+      return el;
+    }
+
+const pick4Header = document.querySelector(".header").cloneNode(true);
+screen.appendChild(pick4Header);
+ pick4Header.style.transform = "translate(10px, 0px)";  
+pick4Header.querySelectorAll(".logoGlyph .ch").forEach(letter => {
+  letter.style.letterSpacing = "-2px";
+});
+const pick4Tagline = document.querySelector(".tagline").cloneNode(true);
+screen.appendChild(pick4Tagline);
+ pick4Tagline.style.marginBottom = "9px"; 
+  pick4Tagline.style.transform = "translateY(-8px)";  
+    const board = element("div", null,
+      "display:grid;grid-template-columns:repeat(4,65px);gap:7px;margin:10px auto");
+    const phonePick4 = window.matchMedia("(max-width: 600px)").matches;
+    if (phonePick4) board.style.gridTemplateColumns = "repeat(4, 56px)";
+    const cells = [];
+    for (let i = 0; i < 16; i++) {
+      const cell = element("div", "", "width:65px;height:65px;border:2px solid #587aa7;" +
+        "border-radius:7px;display:flex;align-items:center;justify-content:center;" +
+        "font-size:28px;font-weight:bold;box-sizing:border-box", board);
+      if (phonePick4) { cell.style.width = "56px"; cell.style.height = "56px"; }
+      cells.push(cell);
+    }
+element("div", "PROVERBS 3:5–6",
+  "width:279px;text-align:right;font-size:8px;" +
+  "color:#3d4350;letter-spacing:0.3px;margin-top:-12px");
+   
+const pick4Clue = element("div", puzzle.clue,
+  "font-size:12px;letter-spacing:2px;font-weight:normal;color:#9ba6b8;text-align:center;margin-top:-5px;opacity:0;transition:opacity 5s ease-in-out");
+
+    const controls = element("div", null,
+      "display:flex;align-items:center;gap:12px;justify-content:center");
+
+    const back = element("button", "BACK",
+      "border:1px solid #587aa7;border-radius:20px;background:#171c25;" +
+      "color:white;padding:9px 11px;font-weight:bold", controls);
+
+    const keys = element("div", null,
+      "display:grid;grid-template-columns:repeat(3,48px);gap:8px", controls);
+if (phonePick4) keys.style.gridTemplateColumns = "repeat(3, 44px)";
+    const enter = element("button", "ENTER",
+      "border:1px solid #587aa7;border-radius:20px;background:#171c25;" +
+      "color:white;padding:9px 11px;font-weight:bold", controls);
+const message = element("div", "Select four letters to begin.",
+  "width:100%;text-align:center;font-size:12px;" +
+  "color:#697080;letter-spacing:3px;min-height:18px;" +
+  "margin:6px auto 0;animation:pick4Pulse 3s ease-in-out infinite");
+    
+const bottom = element("div", null,
+      "display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:15px");
+
+    const next = element("button", "NEXT TEST PUZZLE",
+      "border:1px solid #587aa7;border-radius:20px;background:#171c25;" +
+      "color:white;padding:10px 15px", bottom);
+next.style.display = "none";
+    const close = element("button", "RETURN TO BOXED",
+      "border:1px solid #587aa7;border-radius:20px;background:#171c25;" +
+      "color:white;padding:10px 15px", bottom);
+    close.style.display = "none";
+const pick4Footer = element("div", null,
+  "text-align:center;margin-top:4px;font-family:Arial,sans-serif;color:#b9c5d8");
+if (window.matchMedia("(max-width: 600px)").matches) pick4Footer.style.transform = "translateY(-12px)";
+pick4Footer.innerHTML = `
+  <div style="font-size:12px;font-weight:bold;">
+    © 2026 <span style="color:#85a9d5;">Kenneth Murray</span> · BOXED
+  </div>
+  <div style="font-size:12px;margin-top:4px;">
+    Daily Puzzle
+  </div>
+  <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:14px;margin-bottom:14px;">
+  <button type="button" id="pickRulesBtn" style="background:#171c25;color:white;border:1px solid #587aa7;border-radius:20px;padding:10px 15px;cursor:pointer;">RULES</button>
+  <button type="button" id="pickRound2Btn" disabled style="background:#171c25;color:#657080;border:1px solid #344052;border-radius:20px;padding:10px 15px;cursor:default;opacity:0.35;">ROUND <span style="color:#ff5364;font-weight:bold;">2</span></button>
+  <button type="button" id="pickYesterdayBtn" style="background:#171c25;color:white;border:1px solid #587aa7;border-radius:20px;padding:10px 15px;cursor:pointer;">YESTERDAY'S SOLUTION</button>
+</div>
+
+  <div style="font-size:12px;margin-top:25px;">
+    Seeking an additional challenge? Try Kenneth's
+    <a href="https://playperch.online"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="color:#31d3d3;font-weight:bold;letter-spacing:2px;text-decoration:none;"<span style="color:#31d3d3;">p</span><span style="color:#ff5364;">e</span><span style="color:#31d3d3;">r</span><span style="color:#31d3d3;">c</span><span style="color:#31d3d3;">h</span><span style="color:#ff5364;">.</span></a>
+  </div>
+`;
+screen.appendChild(pick4Footer);
+    let phase = "select";
+    let selections = 0;
+    let activeRow = 0;
+    let entries = [];
+    const used = new Set();
+    const fixed = new Set();
+    const keyButtons = [];
+
+    function draw() {
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          const index = r * 4 + c;
+          const cell = cells[index];
+          if (r < activeRow || fixed.has(index)) continue;
+          cell.textContent = r === activeRow ? (entries[c] || "") : "";
+          cell.style.color = "white";
+        }
+      }
+    }
+
+    function reveal(letter) {
+      for (let r = 0; r < 4; r++) {
+        const c = words[r].indexOf(letter);
+        if (c < 0) continue;
+        const index = r * 4 + c;
+        if (fixed.has(index)) continue;
+        fixed.add(index);
+        cells[index].textContent = letter;
+        cells[index].style.color = "#ff5364";
+        return;
+      }
+    }
+
+    function startSolving() {
+      phase = "solve";
+      message.textContent = "Complete the first word.";
+     keyButtons.forEach((b, i) => {
+  const letter = letters[i]; 
+     const selectedDecoy = !genuine.includes(letter) && used.has(letter);
+b.disabled = selectedDecoy;
+b.style.opacity = selectedDecoy ? "0.2" : "1"; 
+      });
+      if ([0, 1, 2, 3].every(c => fixed.has(activeRow * 4 + c))) {
+  checkPick4Row();
+}
+    }
+
+    function pressLetter(letter, button) {
+      if (phase === "select") {
+        if (used.has(letter)) return;
+        used.add(letter);
+        selections++;
+        button.style.opacity = "0.25";
+        button.disabled = true;
+        if (genuine.includes(letter)) reveal(letter);
+        if (selections === 4) {
+          startSolving();
+        } else {
+          message.textContent = "Select " + (4 - selections) + " more letter" +
+            (4 - selections === 1 ? "." : "s.");
+        }
+        return;
+      }
+      if (phase !== "solve") return;
+
+      const nextColumn = [0, 1, 2, 3].find(c =>
+        !fixed.has(activeRow * 4 + c) && !entries[c]);
+      if (nextColumn === undefined) return;
+      entries[nextColumn] = letter;
+      draw();
+      if (
+  entries.filter(Boolean).length +
+  [0, 1, 2, 3].filter(c => fixed.has(activeRow * 4 + c)).length === 4
+) {
+  checkPick4Row();
+}
+    }
+
+    letters.forEach(letter => {
+      const button = element("button", letter,
+        "width:48px;height:48px;border:2px solid #587aa7;border-radius:50%;" +
+        "background:#171c25;color:white;font-size:18px;font-weight:bold", keys);
+      if (phonePick4) { button.style.width = "42px"; button.style.height = "44px"; }
+      button.onclick = () => pressLetter(letter, button);
+      keyButtons.push(button);
+    });
+
+    back.onclick = () => {
+      if (phase !== "solve") return;
+      for (let c = 3; c >= 0; c--) {
+        if (entries[c] && !fixed.has(activeRow * 4 + c)) {
+          entries[c] = "";
+          break;
+        }
+      }
+      draw();
+    };
+
+    function checkPick4Row() {
+      if (phase !== "solve") return;
+      const attempt = [0, 1, 2, 3].map(c =>
+        fixed.has(activeRow * 4 + c)
+          ? words[activeRow][c]
+          : (entries[c] || "")).join("");
+
+      if (attempt.length !== 4) {
+        message.textContent = "Complete all four squares first.";
+        return;
+      }
+      
+if (attempt !== words[activeRow]) {
+  message.textContent = "Not quite. Try again!";
+  message.style.color = "#ff5364";
+
+  const wrongRow = activeRow;
+
+  for (let c = 0; c < 4; c++) {
+    const cell = cells[wrongRow * 4 + c];
+    cell.style.transition = "all 0.15s ease";
+    cell.style.borderColor = "#ff5364";
+    cell.style.boxShadow = "0 0 14px #ff5364";
+    cell.style.transform = "translateX(3px)";
+  }
+
+  setTimeout(() => {
+    for (let c = 0; c < 4; c++) {
+      const cell = cells[wrongRow * 4 + c];
+      cell.style.borderColor = "#587aa7";
+      cell.style.boxShadow = "none";
+      cell.style.transform = "none";
+    }
+  }, 350);
+
+  return;
+}
+
+
+      const completedRow = activeRow;
+
+for (let c = 0; c < 4; c++) {
+  const index = completedRow * 4 + c;
+  const cell = cells[index];
+
+  cell.textContent = words[completedRow][c];
+  cell.style.transition = "all 0.2s ease";
+  cell.style.setProperty("color", "#7bdc9b", "important");
+  cell.style.color = "#7bdc9b";
+  cell.style.borderColor = "#7bdc9b";
+  cell.style.boxShadow = "0 0 14px #7bdc9b";
+  cell.style.transform = "scale(1.06)";
+}
+
+phase = "animating";
+message.textContent = "Correct!";
+
+setTimeout(() => {
+  for (let c = 0; c < 4; c++) {
+    const index = completedRow * 4 + c;
+    const cell = cells[index];
+
+    cell.style.transform = "";
+    cell.style.boxShadow = "";
+   cell.style.borderColor = "#587aa7"; 
+    if (fixed.has(index)) {
+  cell.style.setProperty("color", "#ff5364", "important");
+} else {
+  cell.style.setProperty("color", "#b9c2d3", "important");
+}
+  }
+if (completedRow === 0) {
+  pick4Clue.style.opacity = "1";
+}
+  // Permanently dim letters discarded in a completed transition.
+if (completedRow > 0) {
+  const previousWord = words[completedRow - 1];
+  const currentWord = words[completedRow];
+
+  keyButtons.forEach((button, i) => {
+    const letter = letters[i];
+
+    if (
+      previousWord.includes(letter) &&
+      !currentWord.includes(letter)
+    ) {
+      button.disabled = true;
+      button.style.opacity = "0.2";
+    }
+  });
+}
+
+entries = [];
+activeRow++;
+
+  if (activeRow === 4) {
+    phase = "complete";
+    message.textContent = "PICK 4 COMPLETE!";
+    message.style.color = "#7bdc9b";
+    const toast = document.createElement("div");
+toast.textContent = "PICK 4 COMPLETE — COME BACK TOMORROW FOR A NEW CHALLENGE!";
+toast.style.cssText = "position:relative;max-width:525px;width:90%;margin:24px auto;padding:16px 22px;border:1px solid #555;border-radius:35px;background:#101116;color:#f5f5f5;font-size:16px;letter-spacing:2px;line-height:1.6;text-align:left;box-sizing:border-box;";
+screen.appendChild(toast);
+  } else {
+    phase = "solve";
+    message.textContent = "Now complete word " + (activeRow + 1) + ".";
+    message.style.color = "#b9c5d8";
+  }
+}, 650);
+    }
+enter.onclick = () => {};
+
+    next.onclick = () => {
+      testIndex = (testIndex + 1) % PICK4_TEST_BANK.length;
+      window.startPick4();
+    };
+    close.onclick = () => screen.remove();
+    document.body.appendChild(screen);
+  };
+})();
+document.addEventListener("click", function(event) {
+  if (event.target.id !== "pickRulesBtn") return;
+
+  const oldPopup = document.getElementById("pick4RulesOverlay");
+  if (oldPopup) oldPopup.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "pick4RulesOverlay";
+  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px;box-sizing:border-box;";
+
+  const panel = document.createElement("div");
+  panel.style.cssText = "background:#202022;color:#f5f5f5;border:1px solid #444;border-radius:20px;padding:24px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;font:16px/1.5 Arial,sans-serif;box-sizing:border-box;";
+
+  panel.innerHTML = `
+    <div style="font-size:20px;margin-bottom:24px;">PICK 4 — HOW TO PLAY</div>
+    <p>Four Selections. Four Words. One Puzzle.</p>
+    <p>Select four letters to begin.</p>
+    <p>• Every selection counts, including decoys.<br>
+    • Participating letters reveal fixed red letters.<br>
+    • Decoys reveal nothing and become unavailable.<br>
+    • Selected letters fade during the selection phase.<br>
+    • After four selections, participating letters return.<br>
+    • Complete all four four-letter words, using each letter only once per word.<br>
+    • BACK removes entered letters, never fixed red letters.<br>
+    • Solve each word to reveal the next clue.</p>
+    <p>Choose wisely. Every selection matters!</p>
+    <div style="text-align:right;margin-top:24px;">
+      <button id="closePick4Rules" style="background:none;border:none;color:#409cff;font-size:16px;cursor:pointer;">Close</button>
+    </div>
+  `;
+
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+
+  panel.querySelector("#closePick4Rules").onclick = () => overlay.remove();
+  overlay.addEventListener("click", e => {
+    if (e.target === overlay) overlay.remove();
+  });
+});
+  const pickRound2Btn = document.getElementById("pickRound2Btn");
+if (pickRound2Btn) {
+  pickRound2Btn.disabled = true;
+  pickRound2Btn.style.setProperty("opacity", "0.2", "important");
+  pickRound2Btn.style.opacity = "0.25";
+  pickRound2Btn.style.color = "#657080";
+  pickRound2Btn.style.borderColor = "#344052";
+  pickRound2Btn.style.cursor = "default";
+}
+  
+  document.addEventListener("click", function(event) {
+  if (!event.target.closest("#pickYesterdayBtn")) return;
+
+  const modal = document.getElementById("yesterdayModal");
+
+  modal.style.setProperty("display", "flex", "important");
+  modal.style.setProperty("visibility", "visible", "important");
+  modal.style.setProperty("opacity", "1", "important");
+  modal.style.setProperty("z-index", "999999", "important");
+
+  showYesterdaySolution();
+});
+
+document.addEventListener("click", function(event) {
+  if (!event.target.closest(
+    '#yesterdayModal [data-close-modal]'
+  )) return;
+
+  const modal = document.getElementById("yesterdayModal");
+
+  modal.classList.remove("on");
+  modal.style.removeProperty("display");
+  modal.style.removeProperty("visibility");
+  modal.style.removeProperty("opacity");
+  modal.style.removeProperty("z-index");
+});
+</script>
+<script>
+document.querySelectorAll("button").forEach(function(btn) {
+  if (["TEST PICK 3", "TEST PICK 4"].includes(btn.textContent.trim().toUpperCase())) {
+    btn.style.display = "none";
+  }
+});
+</script>
+</script></body>
+</html>
