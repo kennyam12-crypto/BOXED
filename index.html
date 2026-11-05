@@ -5560,12 +5560,15 @@ next.style.display = "none";
 const pick4Footer = element("div", null,
   "text-align:center;margin-top:4px;font-family:Arial,sans-serif;color:#b9c5d8");
 if (window.matchMedia("(max-width: 600px)").matches) pick4Footer.style.transform = "translateY(-12px)";
+
 pick4Footer.innerHTML = `
+<div style="display:none;">
   <div style="font-size:12px;font-weight:bold;">
     © 2026 <span style="color:#85a9d5;">Kenneth Murray</span> · BOXED
   </div>
   <div style="font-size:12px;margin-top:4px;">
     Daily Puzzle
+  </div>
   </div>
   <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:14px;margin-bottom:14px;">
   <button type="button" id="pickRulesBtn" style="background:#171c25;color:white;border:1px solid #587aa7;border-radius:20px;padding:10px 15px;cursor:pointer;">RULES</button>
